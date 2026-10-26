@@ -1,0 +1,549 @@
+<title>YT Dashboard Blueprint</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+  /* Layout: one long scroll, sticky jump bar, every section is a self-contained chunk. Low-fi gray wireframes, three feature colors used consistently everywhere. */
+  :root {
+    --bg: #f7f6f2;
+    --surface: #ffffff;
+    --fg: #1d1f24;
+    --muted: #5d6270;
+    --line: #d9d7cf;
+    --wf: #e9e7e0;
+    --wf-dark: #c9c6bb;
+    --ideas: #c7791a;
+    --thumbs: #b7325f;
+    --files: #1f7f7a;
+    --money: #3b6ad4;
+    --ok: #2f8f4e;
+    --warn: #c0392b;
+    --font-body: "Atkinson Hyperlegible", "Segoe UI", system-ui, sans-serif;
+    --font-mono: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #15171b; --surface: #1f2228; --fg: #ecebe6; --muted: #a3a8b4; --line: #343841;
+      --wf: #2a2e36; --wf-dark: #434955; --ideas: #e5a04a; --thumbs: #e36a94; --files: #4fc1ba; --money: #7ea0ec; --ok: #5fc47e; --warn: #ef6f61;
+      color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #15171b; --surface: #1f2228; --fg: #ecebe6; --muted: #a3a8b4; --line: #343841;
+    --wf: #2a2e36; --wf-dark: #434955; --ideas: #e5a04a; --thumbs: #e36a94; --files: #4fc1ba; --money: #7ea0ec; --ok: #5fc47e; --warn: #ef6f61;
+    color-scheme: dark;
+  }
+  * { box-sizing: border-box; }
+  body { background: var(--bg); color: var(--fg); font-family: var(--font-body); font-size: 17px; line-height: 1.55; }
+  .wrap { max-width: 1040px; margin: 0 auto; padding-block: 24px 80px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+  h1, h2, h3 { line-height: 1.15; text-wrap: balance; margin: 0; }
+  h1 { font-size: clamp(30px, 5vw, 44px); font-weight: 700; }
+  h2 { font-size: clamp(24px, 3.5vw, 30px); font-weight: 700; }
+  h3 { font-size: 19px; font-weight: 700; }
+  p { margin: 0; max-width: 68ch; }
+  a { color: inherit; }
+  code, .mono { font-family: var(--font-mono); font-size: 0.86em; }
+  .eyebrow { font-family: var(--font-mono); font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+  .muted { color: var(--muted); }
+
+  /* jump bar */
+  .jump { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5; background: var(--bg); border-bottom: 1px solid var(--line); margin-inline: calc(-1 * max(16px, env(safe-area-inset-left, 0px))) calc(-1 * max(16px, env(safe-area-inset-right, 0px))); padding-inline: max(16px, env(safe-area-inset-left, 0px)) max(16px, env(safe-area-inset-right, 0px)); padding-block: 10px; margin-bottom: 36px; }
+  .jump ul { list-style: none; margin: 0; padding: 0; display: flex; gap: 6px 14px; flex-wrap: wrap; font-size: 14px; }
+  .jump a { text-decoration: none; color: var(--muted); font-weight: 700; padding: 4px 2px; }
+  .jump a:hover, .jump a:focus-visible { color: var(--fg); outline: none; border-bottom: 2px solid var(--fg); }
+
+  section { margin-bottom: 64px; scroll-margin-top: 70px; }
+  .sec-head { display: flex; flex-direction: column; gap: 6px; margin-bottom: 20px; }
+  .why { font-size: 15px; color: var(--muted); }
+
+  /* TLDR */
+  .tldr { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; margin-top: 22px; }
+  .feat { border-top: 5px solid var(--c); background: var(--surface); border-radius: 6px; padding: 16px; display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+  .feat h3 { color: var(--c); }
+  .feat p { font-size: 15px; }
+  .feat .in-out { font-size: 14px; display: grid; grid-template-columns: auto 1fr; gap: 2px 10px; }
+  .feat .in-out b { color: var(--muted); font-weight: 700; }
+  .ideas { --c: var(--ideas); } .thumbs { --c: var(--thumbs); } .files { --c: var(--files); } .money { --c: var(--money); }
+
+  /* wireframes */
+  .screens { display: flex; flex-direction: column; gap: 36px; }
+  .screen { display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, 1fr); gap: 20px; align-items: start; }
+  .screen-notes { display: flex; flex-direction: column; gap: 10px; font-size: 15px; }
+  .screen-notes ol { margin: 0; padding-left: 22px; display: flex; flex-direction: column; gap: 6px; }
+  .screen-notes li::marker { font-weight: 700; color: var(--c); }
+  .frame { background: var(--surface); border: 2px solid var(--wf-dark); border-radius: 8px; overflow: hidden; min-width: 0; }
+  .frame .bar { background: var(--wf); border-bottom: 2px solid var(--wf-dark); padding: 6px 12px; font-family: var(--font-mono); font-size: 12px; color: var(--muted); display: flex; justify-content: space-between; gap: 8px; }
+  .frame .bar b { color: var(--c); }
+  .body { display: grid; grid-template-columns: 150px minmax(0, 1fr); min-height: 300px; }
+  .side { background: var(--wf); border-right: 2px solid var(--wf-dark); padding: 12px; display: flex; flex-direction: column; gap: 10px; font-size: 13px; }
+  .side .nav { padding: 6px 8px; border-radius: 4px; border: 1px dashed var(--wf-dark); }
+  .side .nav.on { background: var(--surface); border-style: solid; font-weight: 700; }
+  .main { padding: 14px; display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+  .blk { border: 2px dashed var(--wf-dark); border-radius: 4px; padding: 10px; font-size: 13px; color: var(--muted); background: var(--surface); min-width: 0; }
+  .blk.solid { border-style: solid; }
+  .blk.accent { border-color: var(--c); color: var(--c); font-weight: 700; }
+  .blk.tall { min-height: 90px; }
+  .row { display: flex; gap: 10px; }
+  .row > * { flex: 1 1 0; min-width: 0; }
+  .num { display: inline-grid; place-items: center; width: 20px; height: 20px; border-radius: 50%; background: var(--c); color: #fff; font-size: 12px; font-weight: 700; margin-right: 6px; font-family: var(--font-mono); }
+  .cols { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 8px; }
+  .col { border: 2px dashed var(--wf-dark); border-radius: 4px; padding: 6px; font-size: 12px; color: var(--muted); display: flex; flex-direction: column; gap: 6px; min-height: 120px; }
+  .col .card { background: var(--wf); border-radius: 3px; height: 26px; }
+  .thumbgrid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+  .thumb { border: 2px dashed var(--wf-dark); border-radius: 4px; padding: 6px; font-size: 12px; color: var(--muted); display: flex; flex-direction: column; gap: 4px; }
+  .thumb .img { aspect-ratio: 16 / 9; background: var(--wf); border-radius: 3px; max-width: 100%; position: relative; }
+  .thumb .img i { position: absolute; right: 4px; bottom: 4px; width: 28%; height: 22%; border: 1px solid var(--thumbs); border-radius: 2px; }
+  .thumb .score { font-weight: 700; color: var(--c); font-size: 14px; }
+  .meter { height: 6px; background: var(--wf); border-radius: 3px; overflow: hidden; }
+  .meter i { display: block; height: 100%; background: var(--c); }
+  table.wft { width: 100%; border-collapse: collapse; font-size: 12px; color: var(--muted); }
+  table.wft th, table.wft td { border: 1px dashed var(--wf-dark); padding: 5px 6px; text-align: left; white-space: nowrap; }
+  table.wft th { font-family: var(--font-mono); font-weight: 600; background: var(--wf); }
+  .tag { display: inline-block; padding: 1px 6px; border-radius: 3px; font-size: 11px; font-weight: 700; color: #fff; }
+  .phone-note { font-size: 13px; color: var(--muted); font-style: italic; }
+
+  /* data model */
+  .lanes { display: flex; flex-direction: column; gap: 18px; }
+  .lane { border-left: 5px solid var(--c, var(--line)); padding-left: 16px; display: flex; flex-direction: column; gap: 10px; }
+  .lane-head { display: flex; flex-direction: column; gap: 2px; }
+  .lane-head h3 { color: var(--c, var(--fg)); }
+  .lane-head p { font-size: 15px; }
+  .tables { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 12px; }
+  .tbl { background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 12px; display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+  .tbl .name { font-family: var(--font-mono); font-weight: 600; font-size: 14px; color: var(--c, var(--fg)); }
+  .tbl .what { font-size: 14px; }
+  .tbl ul { list-style: none; margin: 0; padding: 0; font-family: var(--font-mono); font-size: 12px; color: var(--muted); display: flex; flex-direction: column; gap: 2px; }
+  .tbl li b { color: var(--fg); font-weight: 600; }
+  .tbl .link { font-size: 12px; color: var(--muted); border-top: 1px dashed var(--line); padding-top: 6px; }
+
+  .tree { background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 16px 18px; overflow-x: auto; margin-bottom: 22px; }
+  .tree ul { list-style: none; margin: 0; padding-left: 22px; border-left: 2px solid var(--line); }
+  .tree > ul { padding-left: 0; border-left: 0; }
+  .tree li { position: relative; padding: 3px 0 3px 12px; font-family: var(--font-mono); font-size: 14px; }
+  .tree > ul > li { padding-left: 0; }
+  .tree ul ul li::before { content: ""; position: absolute; left: -2px; top: 16px; width: 12px; border-top: 2px solid var(--line); }
+  .tree .n { font-weight: 600; }
+  .tree .d { color: var(--muted); font-family: var(--font-body); font-size: 14px; }
+  .tree .i { color: var(--ideas); } .tree .t { color: var(--thumbs); } .tree .f { color: var(--files); } .tree .m { color: var(--money); }
+
+  /* flow */
+  .flow { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 8px; counter-reset: step; }
+  .step { background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 12px; font-size: 14px; display: flex; flex-direction: column; gap: 6px; position: relative; min-width: 0; }
+  .step::before { counter-increment: step; content: counter(step); font-family: var(--font-mono); font-weight: 600; font-size: 12px; color: var(--money); }
+  .step b { display: block; }
+  .step .where { font-family: var(--font-mono); font-size: 11px; color: var(--muted); }
+  .callout { border: 1px solid var(--line); border-left: 5px solid var(--ok); background: var(--surface); border-radius: 6px; padding: 12px 14px; font-size: 15px; margin-top: 14px; }
+  .callout.warn { border-left-color: var(--warn); }
+
+  /* plans */
+  .plans { width: 100%; border-collapse: collapse; background: var(--surface); border: 1px solid var(--line); font-size: 15px; font-variant-numeric: tabular-nums; }
+  .plans th, .plans td { padding: 10px 12px; border-bottom: 1px solid var(--line); text-align: left; vertical-align: top; }
+  .plans th { font-size: 13px; color: var(--muted); font-weight: 700; }
+  .plans td:first-child { font-weight: 700; }
+  .plans .price { font-family: var(--font-mono); color: var(--money); font-weight: 600; }
+  .scroll { overflow-x: auto; }
+
+  /* phases */
+  .phases { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 12px; }
+  .phase { background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 14px; display: flex; flex-direction: column; gap: 8px; }
+  .phase .eyebrow { color: var(--money); }
+  .phase ul { margin: 0; padding-left: 18px; font-size: 14px; display: flex; flex-direction: column; gap: 4px; }
+  .phase .test { font-size: 13px; color: var(--muted); border-top: 1px dashed var(--line); padding-top: 8px; }
+
+  /* decisions + risks */
+  .decide { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
+  .decide li { background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 12px 14px; display: grid; grid-template-columns: 28px 1fr; gap: 10px; font-size: 15px; }
+  .decide .q { font-weight: 700; }
+  .decide .box { width: 20px; height: 20px; border: 2px solid var(--fg); border-radius: 4px; margin-top: 2px; }
+  .decide .sug { color: var(--muted); font-size: 14px; }
+  .risks { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 12px; }
+  .risk { background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 12px 14px; font-size: 15px; display: flex; flex-direction: column; gap: 6px; }
+  .risk b { display: block; }
+  .risk .fix { color: var(--muted); font-size: 14px; }
+  .risk .fix::before { content: "Plan: "; font-weight: 700; color: var(--ok); }
+
+  @media (max-width: 760px) {
+    .tldr { grid-template-columns: 1fr; }
+    .screen { grid-template-columns: 1fr; }
+    .body { grid-template-columns: 1fr; }
+    .side { flex-direction: row; flex-wrap: wrap; border-right: 0; border-bottom: 2px solid var(--wf-dark); }
+    .cols { grid-template-columns: repeat(5, minmax(90px, 1fr)); overflow-x: auto; }
+    .thumbgrid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .flow { grid-template-columns: 1fr 1fr; }
+  }
+  @media (max-width: 440px) { .flow { grid-template-columns: 1fr; } }
+  @media (prefers-reduced-motion: no-preference) { html { scroll-behavior: smooth; } }
+</style>
+
+<div class="wrap">
+  <nav class="jump" aria-label="Jump to section">
+    <ul>
+      <li><a href="#tldr">The gist</a></li>
+      <li><a href="#screens">Screens</a></li>
+      <li><a href="#data">Data model</a></li>
+      <li><a href="#flow">AI flow</a></li>
+      <li><a href="#plans">Plans and cost</a></li>
+      <li><a href="#build">Build order</a></li>
+      <li><a href="#decide">Your call</a></li>
+      <li><a href="#risks">Risks</a></li>
+    </ul>
+  </nav>
+
+  <section id="tldr">
+    <div class="sec-head">
+      <span class="eyebrow">Phase 0 blueprint</span>
+      <h1>YT Dashboard Blueprint</h1>
+      <p>One app. Three tools. Each one takes something messy from a creator and hands back something ready to use.</p>
+    </div>
+    <div class="tldr">
+      <div class="feat ideas">
+        <h3>Idea Organizer</h3>
+        <p>Paste a brain dump. Get video cards on a board.</p>
+        <div class="in-out"><b>In</b><span>Messy notes</span><b>Out</b><span>Cards with title, hook, format, status</span><b>Cost</b><span>About 5 cents per run</span></div>
+      </div>
+      <div class="feat thumbs">
+        <h3>Thumbnail Tester</h3>
+        <p>Upload 2 to 6 thumbnails. See which one wins and why.</p>
+        <div class="in-out"><b>In</b><span>Images and a title</span><b>Out</b><span>Scores, reasons, accessibility warnings</span><b>Cost</b><span>About 1 cent per thumbnail</span></div>
+      </div>
+      <div class="feat files">
+        <h3>File Organizer</h3>
+        <p>Point at a folder of footage. Get clean names and sorted subfolders.</p>
+        <div class="in-out"><b>In</b><span>A local folder</span><b>Out</b><span>Renamed, tagged, sorted files</span><b>Cost</b><span>About half a cent per file</span></div>
+      </div>
+    </div>
+    <div class="callout">Video never leaves the laptop. Only tiny frame samples and thumbnails go to the AI. Keys stay on the server.</div>
+  </section>
+
+  <section id="screens">
+    <div class="sec-head">
+      <span class="eyebrow">Wireframes</span>
+      <h2>Screens</h2>
+      <p class="why">Low-fi on purpose. Gray boxes are layout. Colored boxes are the one action that matters on that screen. Numbers match the notes.</p>
+    </div>
+    <div class="screens">
+
+      <!-- Ideas -->
+      <div class="screen ideas">
+        <div class="frame">
+          <div class="bar"><span><b>Ideas</b> /ideas</span><span>desktop</span></div>
+          <div class="body">
+            <div class="side">
+              <div class="nav">Dashboard</div>
+              <div class="nav on">Ideas</div>
+              <div class="nav">Thumbnails</div>
+              <div class="nav">Files</div>
+              <div class="nav">Billing</div>
+            </div>
+            <div class="main">
+              <div class="blk tall"><span class="num">1</span>Big text box. "Dump everything here." Placeholder shows an example.</div>
+              <div class="row"><div class="blk accent"><span class="num">2</span>Organize my ideas</div><div class="blk">7 of 10 free projects used</div></div>
+              <div class="cols">
+                <div class="col"><span class="num">3</span>Idea<div class="card"></div><div class="card"></div><div class="card"></div></div>
+                <div class="col">Scripting<div class="card"></div></div>
+                <div class="col">Filming<div class="card"></div></div>
+                <div class="col">Editing</div>
+                <div class="col">Published<div class="card"></div><div class="card"></div></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="screen-notes">
+          <h3>Idea Organizer</h3>
+          <ol>
+            <li>Paste or type. No formatting needed.</li>
+            <li>One button. Claude groups the notes and makes a card per video idea.</li>
+            <li>Drag cards across five columns. Click a card to edit title, hook, format, notes.</li>
+          </ol>
+          <p class="phone-note">Phone: text box on top, board becomes a swipeable row of columns.</p>
+        </div>
+      </div>
+
+      <!-- Thumbnails -->
+      <div class="screen thumbs">
+        <div class="frame">
+          <div class="bar"><span><b>Thumbnails</b> /thumbnails/new</span><span>desktop</span></div>
+          <div class="body">
+            <div class="side">
+              <div class="nav">Dashboard</div>
+              <div class="nav">Ideas</div>
+              <div class="nav on">Thumbnails</div>
+              <div class="nav">Files</div>
+              <div class="nav">Billing</div>
+            </div>
+            <div class="main">
+              <div class="row"><div class="blk"><span class="num">1</span>Video title</div><div class="blk">Drop 2 to 6 images</div></div>
+              <div class="row"><div class="blk"><span class="num">2</span>View: Normal / Protanopia / Deuteranopia / Tritanopia / Blur / Small</div><div class="blk accent"><span class="num">3</span>Score with AI (3 left this month)</div></div>
+              <div class="thumbgrid">
+                <div class="thumb"><div class="img"><i></i></div><span class="score">82 Winner</span><div class="meter"><i style="width:82%"></i></div><span>Text under timestamp</span></div>
+                <div class="thumb"><div class="img"><i></i></div><span class="score">67</span><div class="meter"><i style="width:67%"></i></div><span>Low contrast</span></div>
+                <div class="thumb"><div class="img"><i></i></div><span class="score">54</span><div class="meter"><i style="width:54%"></i></div><span>Face too small</span></div>
+              </div>
+              <div class="blk"><span class="num">4</span>Why it won. Clarity 9, Emotion 8, Contrast 7, Text 8, Curiosity 9.</div>
+              <div class="row"><div class="blk">Send winner to Notion (Creator and up)</div></div>
+            </div>
+          </div>
+        </div>
+        <div class="screen-notes">
+          <h3>Thumbnail Tester</h3>
+          <ol>
+            <li>Title plus images. Images stay in the browser until you score.</li>
+            <li>Free, instant, runs on the laptop: colorblind views, blur, tiny size. Toggle them like filters.</li>
+            <li>The paid part. One click scores every image. Counter shows what is left.</li>
+            <li>Plain-English reasons, five sub-scores per image. Pink outline on the image marks YouTube's timestamp zone.</li>
+          </ol>
+          <p class="phone-note">Phone: one thumbnail per row, filters become a dropdown.</p>
+        </div>
+      </div>
+
+      <!-- Files -->
+      <div class="screen files">
+        <div class="frame">
+          <div class="bar"><span><b>Files</b> /organizer</span><span>desktop Chrome or Edge only</span></div>
+          <div class="body">
+            <div class="side">
+              <div class="nav">Dashboard</div>
+              <div class="nav">Ideas</div>
+              <div class="nav">Thumbnails</div>
+              <div class="nav on">Files</div>
+              <div class="nav">Billing</div>
+            </div>
+            <div class="main">
+              <div class="row"><div class="blk accent"><span class="num">1</span>Choose folder</div><div class="blk"><span class="num">2</span>Naming rule: date_project_type_desc</div><div class="blk">38 of 500 files this month</div></div>
+              <div class="blk"><span class="num">3</span>Scanning 38 files... 12 done. (frames sampled in your browser)</div>
+              <div class="scroll">
+                <table class="wft">
+                  <tr><th>color</th><th>original</th><th>new name (editable)</th><th>type</th><th>what's in it</th></tr>
+                  <tr><td><span class="tag" style="background:#1f7f7a">B-roll</span></td><td>IMG_4471.mov</td><td>2026-10-26_desk-setup_broll_cable-closeup</td><td>B-roll</td><td>Close-up of cables on desk</td></tr>
+                  <tr><td><span class="tag" style="background:#c7791a">Talking</span></td><td>C0012.mp4</td><td>2026-10-26_desk-setup_talking_intro-take2</td><td>Talking head</td><td>Person at desk talking to camera</td></tr>
+                  <tr><td><span class="tag" style="background:#b7325f">Music</span></td><td>track_final.wav</td><td>2026-10-26_desk-setup_music_lofi-bed</td><td>Music</td><td>No video, audio only</td></tr>
+                  <tr><td><span class="tag" style="background:#3b6ad4">Screen</span></td><td>Screenshot 3.png</td><td>2026-10-26_desk-setup_screenshot_analytics</td><td>Screenshot</td><td>YouTube Studio analytics page</td></tr>
+                </table>
+              </div>
+              <div class="row"><div class="blk">Select all / Undo last run</div><div class="blk accent"><span class="num">4</span>Rename and sort 38 files</div></div>
+            </div>
+          </div>
+        </div>
+        <div class="screen-notes">
+          <h3>File Organizer</h3>
+          <ol>
+            <li>Browser asks permission once. We never upload the videos.</li>
+            <li>Pick a saved naming rule or write one. Custom rules are Creator and up.</li>
+            <li>Progress bar while frames are grabbed and described. You can keep working.</li>
+            <li>Review table. Fix any name. Then one Submit. Files move into subfolders by type. Undo log is saved.</li>
+          </ol>
+          <p class="phone-note">Phone: not available. Show a short "open this on your computer" message.</p>
+        </div>
+      </div>
+
+      <!-- Billing -->
+      <div class="screen money">
+        <div class="frame">
+          <div class="bar"><span><b>Billing</b> /settings/billing</span><span>desktop</span></div>
+          <div class="body">
+            <div class="side">
+              <div class="nav">Dashboard</div>
+              <div class="nav">Ideas</div>
+              <div class="nav">Thumbnails</div>
+              <div class="nav">Files</div>
+              <div class="nav on">Billing</div>
+            </div>
+            <div class="main">
+              <div class="row"><div class="blk solid"><span class="num">1</span>You are on <b>Creator</b>. Renews Nov 26.</div><div class="blk accent">Manage in Stripe</div></div>
+              <div class="blk"><span class="num">2</span>This month<div class="meter" style="margin-top:6px"><i style="width:38%"></i></div>19 of 50 thumbnail scores<div class="meter" style="margin-top:6px"><i style="width:8%"></i></div>38 of 500 files</div>
+              <div class="row"><div class="blk">Free</div><div class="blk solid">Creator $25</div><div class="blk accent"><span class="num">3</span>Upgrade to Pro $40</div></div>
+            </div>
+          </div>
+        </div>
+        <div class="screen-notes">
+          <h3>Billing and usage</h3>
+          <ol>
+            <li>Current plan, next renewal. Stripe's portal handles cards and cancellations.</li>
+            <li>Usage bars. The same bars show inline next to each paid button so nobody gets surprised.</li>
+            <li>Upgrade goes to Stripe Checkout. The webhook flips the plan, never the success page.</li>
+          </ol>
+          <p class="phone-note">Your own admin view (cost per user vs revenue) is a simple table on a hidden /admin route.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="data">
+    <div class="sec-head">
+      <span class="eyebrow">Postgres on Supabase</span>
+      <h2>Data model</h2>
+      <p class="why">Everything hangs off a workspace. Row-level security means a user can only ever read rows in workspaces they own. Start with the tree, then read the cards.</p>
+    </div>
+
+    <div class="tree">
+      <ul>
+        <li><span class="n">auth.users</span> <span class="d">Supabase login</span>
+          <ul>
+            <li><span class="n m">profiles</span> <span class="d">who they are, what plan</span></li>
+            <li><span class="n m">subscriptions</span> <span class="d">Stripe mirror</span></li>
+            <li><span class="n m">feature_usage</span> <span class="d">monthly counters</span></li>
+            <li><span class="n m">ai_usage</span> <span class="d">one row per AI call, with cost</span></li>
+            <li><span class="n m">integrations</span> <span class="d">Notion, Google Drive tokens</span></li>
+            <li><span class="n">workspaces</span> <span class="d">one per channel, Pro can have many</span>
+              <ul>
+                <li><span class="n i">idea_dumps</span> <span class="d">the raw paste</span>
+                  <ul><li><span class="n i">projects</span> <span class="d">one card on the board</span></li></ul>
+                </li>
+                <li><span class="n t">thumbnail_tests</span> <span class="d">one upload batch</span>
+                  <ul><li><span class="n t">thumbnail_variants</span> <span class="d">one image with its scores</span></li></ul>
+                </li>
+                <li><span class="n f">naming_rules</span> <span class="d">saved name patterns</span></li>
+                <li><span class="n f">organizer_sessions</span> <span class="d">one folder run</span>
+                  <ul><li><span class="n f">organizer_files</span> <span class="d">one row per file in the review table</span></li></ul>
+                </li>
+              </ul>
+            </li>
+          </ul>
+        </li>
+      </ul>
+    </div>
+
+    <div class="lanes">
+      <div class="lane money">
+        <div class="lane-head"><h3>Account and money</h3><p>Owned directly by the user. Written mostly by the Stripe webhook and the AI routes.</p></div>
+        <div class="tables">
+          <div class="tbl"><span class="name">profiles</span><span class="what">One per user. The plan here is the truth for limits.</span>
+            <ul><li><b>id</b> = auth.users.id</li><li>email</li><li><b>plan</b> free | creator | pro</li><li>stripe_customer_id</li><li>created_at</li></ul></div>
+          <div class="tbl"><span class="name">subscriptions</span><span class="what">Copy of the Stripe subscription so pages never call Stripe to render.</span>
+            <ul><li>user_id</li><li>stripe_subscription_id</li><li>plan, status</li><li>current_period_end</li><li>cancel_at_period_end</li></ul></div>
+          <div class="tbl"><span class="name">feature_usage</span><span class="what">Monthly counters. Bumped before the AI call. Rolled back if the call fails.</span>
+            <ul><li>user_id + <b>period_start</b></li><li>thumbnail_scores</li><li>files_processed</li><li>ai_organize_runs</li></ul></div>
+          <div class="tbl"><span class="name">ai_usage</span><span class="what">Every Claude call. This is your cost-per-user report.</span>
+            <ul><li>user_id, feature</li><li>model</li><li>input_tokens, output_tokens</li><li>cache_read_tokens</li><li><b>cost_usd</b></li><li>created_at</li></ul></div>
+          <div class="tbl"><span class="name">integrations</span><span class="what">Phase 4. Encrypted OAuth tokens.</span>
+            <ul><li>user_id</li><li>provider notion | google_drive</li><li>access_token (encrypted)</li><li>refresh_token (encrypted)</li><li>metadata json</li></ul></div>
+        </div>
+      </div>
+
+      <div class="lane">
+        <div class="lane-head"><h3>Workspace</h3><p>Every feature table points here. Free and Creator get one. Pro can add more, one per channel.</p></div>
+        <div class="tables">
+          <div class="tbl"><span class="name">workspaces</span><span class="what">A channel. Created automatically at signup.</span>
+            <ul><li>id</li><li><b>owner_id</b></li><li>name</li><li>is_default</li></ul></div>
+        </div>
+      </div>
+
+      <div class="lane ideas">
+        <div class="lane-head"><h3>Idea Organizer</h3><p>Two tables. Keep the raw dump so a user can re-run it later.</p></div>
+        <div class="tables">
+          <div class="tbl"><span class="name">idea_dumps</span><span class="what">The messy paste, plus what Claude returned.</span>
+            <ul><li>workspace_id</li><li>raw_text</li><li>result json</li><li>created_at</li></ul></div>
+          <div class="tbl"><span class="name">projects</span><span class="what">One card. Lives in a column.</span>
+            <ul><li>workspace_id</li><li>dump_id (optional)</li><li><b>title</b>, hook, format</li><li><b>status</b> idea | scripting | filming | editing | published</li><li>notes, position</li></ul>
+            <span class="link">Free plan: 10 rows max per user</span></div>
+        </div>
+      </div>
+
+      <div class="lane thumbs">
+        <div class="lane-head"><h3>Thumbnail Tester</h3><p>Images live in a private Supabase bucket. The table stores paths and scores.</p></div>
+        <div class="tables">
+          <div class="tbl"><span class="name">thumbnail_tests</span><span class="what">One batch for one video.</span>
+            <ul><li>workspace_id</li><li>video_title</li><li>created_at</li></ul></div>
+          <div class="tbl"><span class="name">thumbnail_variants</span><span class="what">One image. Scores are null until the user pays a credit.</span>
+            <ul><li>test_id</li><li>storage_path</li><li><b>scores</b> json {clarity, emotion, contrast, text, curiosity, total}</li><li>explanation</li><li>a11y json (contrast, overlay hits)</li><li>is_winner</li></ul></div>
+        </div>
+      </div>
+
+      <div class="lane files">
+        <div class="lane-head"><h3>File Organizer</h3><p>Metadata only. No video bytes ever reach the database.</p></div>
+        <div class="tables">
+          <div class="tbl"><span class="name">naming_rules</span><span class="what">A saved pattern. Tokens in braces.</span>
+            <ul><li>workspace_id</li><li>name</li><li><b>pattern</b> e.g. {date}_{project}_{type}_{desc}</li></ul>
+            <span class="link">Custom rules: Creator and up</span></div>
+          <div class="tbl"><span class="name">organizer_sessions</span><span class="what">One run on one folder.</span>
+            <ul><li>workspace_id</li><li>folder_name</li><li>naming_rule_id</li><li>project_name</li><li>status scanning | review | applied</li></ul></div>
+          <div class="tbl"><span class="name">organizer_files</span><span class="what">One row per file. This is the review table and the undo log.</span>
+            <ul><li>session_id</li><li>original_name</li><li>suggested_name</li><li><b>final_name</b> (user edited)</li><li><b>type_tag</b> a-roll | b-roll | talking | voiceover | music | screenshot | photo</li><li>description, color</li><li>applied bool</li></ul></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="flow">
+    <div class="sec-head">
+      <span class="eyebrow">Same shape for all three AI features</span>
+      <h2>What happens on one AI click</h2>
+      <p class="why">One route handler per feature, all built the same way. If you understand this once, you understand all of them.</p>
+    </div>
+    <div class="flow">
+      <div class="step"><b>Browser preps the input</b><span>Resize thumbnails, grab video frames, or grab the text.</span><span class="where">client</span></div>
+      <div class="step"><b>Check who it is</b><span>Supabase session. No session, no call.</span><span class="where">app/api/*/route.ts</span></div>
+      <div class="step"><b>Check the limit</b><span>Read plan from profiles, compare to feature_usage. Over the cap: return "upgrade" instead.</span><span class="where">lib/usage</span></div>
+      <div class="step"><b>Bump the counter</b><span>Atomic Postgres function. Two fast clicks can't double-spend.</span><span class="where">lib/usage</span></div>
+      <div class="step"><b>Ask Claude</b><span>Structured output so the answer is always valid JSON. Stream it back.</span><span class="where">lib/anthropic</span></div>
+      <div class="step"><b>Log cost, return</b><span>Write ai_usage with tokens and dollars. Send result to the page.</span><span class="where">lib/usage</span></div>
+    </div>
+    <div class="callout">Routes: <code>POST /api/ideas/organize</code>, <code>POST /api/thumbnails/score</code>, <code>POST /api/organizer/describe</code>. Plus <code>/api/stripe/checkout</code>, <code>/api/stripe/portal</code>, <code>/api/stripe/webhook</code>. Everything else (saving cards, moving columns, editing names) is a Server Action, no API route needed.</div>
+  </section>
+
+  <section id="plans">
+    <div class="sec-head">
+      <span class="eyebrow">Stripe subscriptions, limits enforced on the server</span>
+      <h2>Plans and what they cost you</h2>
+      <p class="why">Worst case means the user maxes every limit every month. Almost nobody will. Opus 5.5 pricing.</p>
+    </div>
+    <div class="scroll">
+      <table class="plans">
+        <tr><th>Plan</th><th>Price</th><th>Ideas</th><th>Thumbnail scores</th><th>Files</th><th>Extras</th><th>Worst-case AI cost</th><th>Margin</th></tr>
+        <tr><td>Free</td><td class="price">$0</td><td>10 projects, 10 AI runs</td><td>3 per month</td><td>25 per month</td><td>Accessibility checks unlimited</td><td>About $1</td><td class="muted">loss leader</td></tr>
+        <tr><td>Creator</td><td class="price">$25</td><td>Unlimited</td><td>50 per month</td><td>500 per month</td><td>Notion sync, custom naming rules</td><td>About $3.50</td><td>86%</td></tr>
+        <tr><td>Pro</td><td class="price">$40</td><td>Unlimited</td><td>150 per month</td><td>2,000 per month</td><td>Google Drive, many workspaces, priority queue</td><td>About $10.50</td><td>74%</td></tr>
+      </table>
+    </div>
+    <div class="callout">Where the money goes on Pro: files are the big one at about $8 worst case. Switching only the File Organizer to Haiku 5.5 drops that to about 25 cents. Not needed on day one. The ai_usage table will tell us when.</div>
+  </section>
+
+  <section id="build">
+    <div class="sec-head">
+      <span class="eyebrow">Four stops, each one usable on its own</span>
+      <h2>Build order</h2>
+    </div>
+    <div class="phases">
+      <div class="phase"><span class="eyebrow">Phase 1</span><h3>MVP</h3>
+        <ul><li>Next.js, Tailwind, Supabase setup</li><li>Login and signup</li><li>Idea Organizer, full loop</li><li>Thumbnail Tester, full loop</li><li>Usage counters (hard-coded free limits)</li></ul>
+        <span class="test">You test: sign up, dump ideas, drag cards, score 3 thumbnails, hit the free cap.</span></div>
+      <div class="phase"><span class="eyebrow">Phase 2</span><h3>File Organizer</h3>
+        <ul><li>Folder picker</li><li>Frame sampling in browser</li><li>Describe and name</li><li>Review table and Submit</li><li>Undo log</li></ul>
+        <span class="test">You test: a real footage folder on Chrome. Then undo.</span></div>
+      <div class="phase"><span class="eyebrow">Phase 3</span><h3>Money</h3>
+        <ul><li>Stripe Checkout and portal</li><li>Webhook flips plans</li><li>Limits read from plan</li><li>Upgrade prompts at the cap</li><li>Admin cost report</li></ul>
+        <span class="test">You test: upgrade with a test card, cancel, watch limits change.</span></div>
+      <div class="phase"><span class="eyebrow">Phase 4</span><h3>Reach</h3>
+        <ul><li>Notion push</li><li>Google Drive as a source</li><li>Landing page with pricing</li></ul>
+        <span class="test">You test: push a winner to your Notion template.</span></div>
+    </div>
+  </section>
+
+  <section id="decide">
+    <div class="sec-head">
+      <span class="eyebrow">Five quick answers and I start building</span>
+      <h2>Your call</h2>
+    </div>
+    <ul class="decide">
+      <li><span class="box"></span><div><div class="q">Git email for codingwithden?</div><div class="sug">Default: denissemedinaflores@gmail.com. Commits will be authored only by you, no AI lines.</div></div></li>
+      <li><span class="box"></span><div><div class="q">One thumbnail score = one image?</div><div class="sug">Default: yes. A 4-image test spends 4 credits. The alternative is one credit per test.</div></div></li>
+      <li><span class="box"></span><div><div class="q">Opus 5.5 for everything?</div><div class="sug">Default: yes. Haiku for the File Organizer is the only switch worth considering, and it can wait.</div></div></li>
+      <li><span class="box"></span><div><div class="q">Email + password and Google sign-in?</div><div class="sug">Default: yes. Magic links are the alternative.</div></div></li>
+      <li><span class="box"></span><div><div class="q">Free plan gets 10 Idea Organizer AI runs a month?</div><div class="sug">Default: yes. Without a cap, Free users could run the most expensive feature forever.</div></div></li>
+    </ul>
+  </section>
+
+  <section id="risks">
+    <div class="sec-head">
+      <span class="eyebrow">Known problems and the plan for each</span>
+      <h2>Risks</h2>
+    </div>
+    <div class="risks">
+      <div class="risk"><b>File Organizer only works in Chrome, Edge, Brave, Arc on desktop.</b><span>Safari and Firefox can't write to local folders.</span><span class="fix">Other browsers get a read-only preview and a downloadable rename script. Phones get a friendly "use your computer" note.</span></div>
+      <div class="risk"><b>ffmpeg.wasm is a 30 MB download and its fast mode breaks Stripe's embedded forms.</b><span class="fix">Grab frames with a hidden video tag and canvas instead. Covers mp4, webm, and most mov. Load ffmpeg.wasm lazily only for odd codecs like ProRes.</span></div>
+      <div class="risk"><b>Moving big files into subfolders can be slow.</b><span>The browser's move method isn't reliable yet outside its private storage.</span><span class="fix">Use move where it works, copy then delete elsewhere. Write an undo log before touching anything.</span></div>
+      <div class="risk"><b>Scoring 6 thumbnails can take 20 to 40 seconds.</b><span>Vercel Hobby cuts functions off at 10 seconds.</span><span class="fix">Vercel Pro and streaming responses from day one. User sees scores appear one by one.</span></div>
+      <div class="risk"><b>Free users could run up the bill.</b><span class="fix">Every AI route checks the counter first. Counters bump atomically. Free gets hard caps on all three features.</span></div>
+      <div class="risk"><b>Stripe webhook glitches could give or take access by mistake.</b><span class="fix">Only the webhook changes plans. Every event id is stored, so a replay is a no-op. Success page just says "thanks."</span></div>
+    </div>
+  </section>
+</div>
