@@ -1,0 +1,892 @@
+<title>YT Dashboard Prototype</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+  /* Layout: app shell. Left rail on desktop, bottom tab bar on phones. One primary action per screen, a 3-step tracker on top of each tool. */
+  :root {
+    --bg: #f5f4ef; --surface: #ffffff; --sunk: #ecebe4; --fg: #1c1e23; --muted: #5c6170; --line: #dcdad1;
+    --ideas: #b8690f; --thumbs: #b02d5b; --files: #1a7772; --money: #3561c9;
+    --ok: #2b8549; --warn: #b9471f; --on-accent: #ffffff;
+    --t-aroll: #c0392b; --t-broll: #1a7772; --t-talking: #b8690f; --t-vo: #7a4cc2; --t-music: #b02d5b; --t-screenshot: #3561c9; --t-photo: #5d6b2a;
+    --font-body: "Atkinson Hyperlegible", "Segoe UI", system-ui, sans-serif;
+    --font-mono: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, monospace;
+    --radius: 8px;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #14161a; --surface: #1e2127; --sunk: #181a1f; --fg: #ecebe6; --muted: #a1a7b3; --line: #32363f;
+      --ideas: #eda650; --thumbs: #ec7aa2; --files: #57c7bf; --money: #86a6f0; --ok: #62c784; --warn: #f08a5f; --on-accent: #14161a;
+      --t-aroll: #f08074; --t-broll: #57c7bf; --t-talking: #eda650; --t-vo: #b99af0; --t-music: #ec7aa2; --t-screenshot: #86a6f0; --t-photo: #b8c76a;
+      color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #14161a; --surface: #1e2127; --sunk: #181a1f; --fg: #ecebe6; --muted: #a1a7b3; --line: #32363f;
+    --ideas: #eda650; --thumbs: #ec7aa2; --files: #57c7bf; --money: #86a6f0; --ok: #62c784; --warn: #f08a5f; --on-accent: #14161a;
+    --t-aroll: #f08074; --t-broll: #57c7bf; --t-talking: #eda650; --t-vo: #b99af0; --t-music: #ec7aa2; --t-screenshot: #86a6f0; --t-photo: #b8c76a;
+    color-scheme: dark;
+  }
+  * { box-sizing: border-box; }
+  html, body { height: 100%; }
+  body { background: var(--bg); color: var(--fg); font-family: var(--font-body); font-size: 16px; line-height: 1.5; }
+  h1, h2, h3 { margin: 0; line-height: 1.2; text-wrap: balance; }
+  p { margin: 0; }
+  button, input, select, textarea { font: inherit; color: inherit; }
+  :focus-visible { outline: 3px solid var(--money); outline-offset: 2px; }
+  .mono { font-family: var(--font-mono); font-size: 0.85em; }
+  .muted { color: var(--muted); }
+  .ideas { --c: var(--ideas); } .thumbs { --c: var(--thumbs); } .files { --c: var(--files); } .money { --c: var(--money); }
+
+  /* shell */
+  .app { display: grid; grid-template-columns: 220px minmax(0, 1fr); min-height: 100%; }
+  .rail { position: sticky; top: 0; height: 100vh; background: var(--sunk); border-right: 1px solid var(--line); padding: 20px 14px; display: flex; flex-direction: column; gap: 22px; padding-left: max(14px, env(safe-area-inset-left, 0px)); }
+  .brand { font-weight: 700; font-size: 18px; display: flex; flex-direction: column; gap: 2px; }
+  .brand small { font-family: var(--font-mono); font-size: 11px; color: var(--muted); font-weight: 400; letter-spacing: 0.06em; text-transform: uppercase; }
+  .nav { display: flex; flex-direction: column; gap: 4px; }
+  .nav a { display: flex; align-items: center; gap: 10px; padding: 9px 10px; border-radius: 6px; text-decoration: none; color: var(--muted); font-weight: 700; }
+  .nav a svg { width: 20px; height: 20px; flex: none; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+  .nav a:hover { color: var(--fg); background: var(--surface); }
+  .nav a.on { color: var(--c, var(--fg)); background: var(--surface); box-shadow: inset 3px 0 0 var(--c, var(--fg)); }
+  .rail-usage { margin-top: auto; display: flex; flex-direction: column; gap: 10px; font-size: 13px; }
+  .rail-usage .lbl { display: flex; justify-content: space-between; gap: 8px; color: var(--muted); }
+  .bar { height: 6px; border-radius: 3px; background: var(--line); overflow: hidden; }
+  .bar i { display: block; height: 100%; background: var(--c, var(--money)); border-radius: 3px; transition: width .4s ease; }
+  .bar.full i { background: var(--warn); }
+
+  .main { min-width: 0; padding-block: 18px 60px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+  .inner { max-width: 1120px; margin: 0 auto; display: flex; flex-direction: column; gap: 22px; }
+  .topbar { display: flex; align-items: center; justify-content: space-between; gap: 10px 16px; flex-wrap: wrap; }
+  .demo-note { font-size: 13px; color: var(--muted); display: flex; align-items: center; gap: 8px; }
+  .demo-note b { font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; background: var(--fg); color: var(--bg); padding: 2px 6px; border-radius: 3px; }
+  .planswitch { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--muted); flex-wrap: wrap; }
+  .seg { display: inline-flex; background: var(--sunk); border: 1px solid var(--line); border-radius: 999px; padding: 3px; gap: 2px; flex-wrap: wrap; }
+  .seg button { border: 0; background: none; padding: 5px 12px; border-radius: 999px; cursor: pointer; font-weight: 700; font-size: 13px; color: var(--muted); }
+  .seg button.on { background: var(--surface); color: var(--fg); box-shadow: 0 1px 2px rgb(0 0 0 / 0.15); }
+  .linkbtn { border: 0; background: none; color: var(--muted); text-decoration: underline; cursor: pointer; font-size: 13px; padding: 4px; }
+
+  /* page head + steps */
+  .phead { display: flex; flex-direction: column; gap: 6px; }
+  .phead h1 { font-size: clamp(26px, 4vw, 34px); }
+  .phead p { color: var(--muted); max-width: 62ch; }
+  .steps { display: flex; gap: 8px; flex-wrap: wrap; list-style: none; margin: 0; padding: 0; }
+  .steps li { display: flex; align-items: center; gap: 8px; padding: 6px 12px 6px 6px; border-radius: 999px; background: var(--surface); border: 1px solid var(--line); font-size: 14px; font-weight: 700; color: var(--muted); }
+  .steps li span { width: 24px; height: 24px; border-radius: 50%; display: grid; place-items: center; background: var(--sunk); font-family: var(--font-mono); font-size: 12px; }
+  .steps li.now { color: var(--fg); border-color: var(--c); }
+  .steps li.now span { background: var(--c); color: var(--on-accent); }
+  .steps li.done span { background: var(--ok); color: var(--on-accent); }
+  .steps li.done span::before { content: "\2713"; }
+  .steps li.done span b { display: none; }
+
+  /* generic */
+  .panel { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 16px; display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+  .row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+  .grow { flex: 1 1 220px; min-width: 0; }
+  .btn { border: 1px solid var(--line); background: var(--surface); padding: 9px 14px; border-radius: 6px; cursor: pointer; font-weight: 700; display: inline-flex; align-items: center; gap: 8px; text-decoration: none; }
+  .btn:hover { border-color: var(--fg); }
+  .btn.primary { background: var(--c, var(--money)); border-color: var(--c, var(--money)); color: var(--on-accent); padding: 11px 18px; font-size: 16px; }
+  .btn.primary:hover { filter: brightness(1.08); }
+  .btn[disabled] { opacity: 0.55; cursor: not-allowed; }
+  .btn .lock { font-size: 12px; }
+  .hint { font-size: 14px; color: var(--muted); }
+  .hint b { color: var(--fg); }
+  label.fld { display: flex; flex-direction: column; gap: 4px; font-size: 13px; font-weight: 700; color: var(--muted); min-width: 0; }
+  input[type="text"], textarea, select { background: var(--bg); border: 1px solid var(--line); border-radius: 6px; padding: 9px 10px; width: 100%; min-width: 0; }
+  textarea { resize: vertical; line-height: 1.55; }
+  .chip { display: inline-flex; align-items: center; gap: 5px; font-size: 12px; font-weight: 700; padding: 2px 8px; border-radius: 999px; background: color-mix(in srgb, var(--chip, var(--muted)) 16%, transparent); color: var(--chip, var(--muted)); white-space: nowrap; }
+  .chip::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: var(--chip, var(--muted)); }
+  .spinner { width: 16px; height: 16px; border: 2px solid currentColor; border-right-color: transparent; border-radius: 50%; animation: spin .8s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* home */
+  .tiles { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
+  .tile { background: var(--surface); border: 1px solid var(--line); border-top: 5px solid var(--c); border-radius: var(--radius); padding: 18px; display: flex; flex-direction: column; gap: 10px; text-decoration: none; color: inherit; transition: transform .15s ease, border-color .15s ease; }
+  .tile:hover { transform: translateY(-2px); border-color: var(--c); }
+  .tile h2 { font-size: 20px; color: var(--c); }
+  .tile .stat { font-size: 14px; color: var(--muted); }
+  .tile .go { margin-top: auto; font-weight: 700; color: var(--c); }
+  .upnext { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 14px; }
+  .bigq { font-size: 15px; color: var(--muted); }
+
+  /* ideas */
+  .idea-input { display: grid; grid-template-columns: minmax(0, 3fr) minmax(0, 2fr); gap: 14px; align-items: start; }
+  .result { display: flex; flex-direction: column; gap: 10px; font-size: 14px; }
+  .result h3 { font-size: 15px; }
+  .result ul { margin: 0; padding-left: 18px; display: flex; flex-direction: column; gap: 4px; }
+  .result .empty { color: var(--muted); }
+  .board { display: grid; grid-template-columns: repeat(5, minmax(200px, 1fr)); gap: 10px; overflow-x: auto; padding-bottom: 6px; }
+  .col { background: var(--sunk); border: 1px solid var(--line); border-radius: var(--radius); padding: 10px; display: flex; flex-direction: column; gap: 8px; min-height: 220px; transition: background .15s ease, border-color .15s ease; }
+  .col.over { border-color: var(--ideas); background: color-mix(in srgb, var(--ideas) 10%, var(--sunk)); }
+  .col-head { display: flex; justify-content: space-between; align-items: center; font-weight: 700; font-size: 14px; }
+  .col-head .n { font-family: var(--font-mono); font-size: 12px; color: var(--muted); }
+  .card { background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 10px; display: flex; flex-direction: column; gap: 6px; cursor: grab; font-size: 14px; text-align: left; width: 100%; }
+  .card:hover { border-color: var(--ideas); }
+  .card.dragging { opacity: 0.4; }
+  .card.fresh { animation: fresh 2.4s ease; }
+  @keyframes fresh { 0%, 40% { box-shadow: 0 0 0 3px var(--ideas); } 100% { box-shadow: 0 0 0 0 transparent; } }
+  .card b { font-size: 14px; line-height: 1.3; }
+  .card .hook { color: var(--muted); font-size: 13px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+  .addcard { border: 1px dashed var(--line); background: none; border-radius: 6px; padding: 8px; color: var(--muted); cursor: pointer; font-weight: 700; font-size: 13px; }
+  .addcard:hover { color: var(--fg); border-color: var(--fg); }
+
+  /* thumbnails */
+  .tgrid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
+  .tcard { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 12px; display: flex; flex-direction: column; gap: 10px; position: relative; min-width: 0; }
+  .tcard.winner { border: 2px solid var(--thumbs); }
+  .tcard .wbadge { position: absolute; top: -11px; left: 12px; background: var(--thumbs); color: var(--on-accent); font-size: 12px; font-weight: 700; padding: 2px 10px; border-radius: 999px; }
+  .tframe { position: relative; aspect-ratio: 16 / 9; max-width: 100%; border-radius: 6px; overflow: hidden; background: var(--sunk); }
+  .tgrid.small .tframe { width: 168px; }
+  .tframe img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .tgrid.f-protan img { filter: url(#f-protan); }
+  .tgrid.f-deutan img { filter: url(#f-deutan); }
+  .tgrid.f-tritan img { filter: url(#f-tritan); }
+  .tgrid.f-blur img { filter: blur(3px); }
+  .ov { position: absolute; inset: 0; pointer-events: none; }
+  .ov .ts { position: absolute; right: 4%; bottom: 5%; background: rgb(0 0 0 / 0.82); color: #fff; font-family: var(--font-mono); font-size: 11px; padding: 1px 5px; border-radius: 3px; }
+  .ov .zone { position: absolute; right: 0; bottom: 0; width: 24%; height: 20%; background: repeating-linear-gradient(45deg, rgb(255 60 120 / 0.28) 0 6px, transparent 6px 12px); border-top: 2px dashed rgb(255 60 120 / 0.9); border-left: 2px dashed rgb(255 60 120 / 0.9); }
+  .ov .q { position: absolute; right: 3%; top: 5%; display: flex; flex-direction: column; gap: 4px; }
+  .ov .q i { width: 22px; height: 22px; border-radius: 3px; background: rgb(0 0 0 / 0.7); display: block; }
+  .tname { display: flex; justify-content: space-between; align-items: center; gap: 8px; font-size: 13px; color: var(--muted); }
+  .tname span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .xbtn { border: 0; background: none; cursor: pointer; color: var(--muted); font-size: 18px; line-height: 1; padding: 2px 6px; }
+  .checks { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 4px; font-size: 13px; }
+  .checks li { display: grid; grid-template-columns: 18px 1fr; gap: 6px; }
+  .checks li::before { font-weight: 700; }
+  .checks li.ok::before { content: "\2713"; color: var(--ok); }
+  .checks li.warn::before { content: "!"; color: var(--warn); text-align: center; }
+  .score { display: flex; flex-direction: column; gap: 8px; border-top: 1px dashed var(--line); padding-top: 10px; }
+  .score .total { display: flex; align-items: baseline; gap: 8px; }
+  .score .total b { font-size: 34px; font-family: var(--font-mono); color: var(--thumbs); font-variant-numeric: tabular-nums; }
+  .subs { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 4px 8px; align-items: center; font-size: 12px; }
+  .subs .bar { --c: var(--thumbs); }
+  .subs .v { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+  .why { font-size: 14px; }
+  .dropzone { border: 2px dashed var(--line); border-radius: var(--radius); padding: 26px 16px; display: flex; flex-direction: column; align-items: center; gap: 10px; text-align: center; color: var(--muted); }
+  .dropzone.over { border-color: var(--thumbs); color: var(--fg); }
+  .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+  /* files */
+  .rule { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 2fr); gap: 12px; }
+  .tokens { display: flex; gap: 6px; flex-wrap: wrap; }
+  .tokens button { font-family: var(--font-mono); font-size: 12px; border: 1px solid var(--line); background: var(--bg); border-radius: 4px; padding: 3px 7px; cursor: pointer; }
+  .tokens button:hover { border-color: var(--files); }
+  .locked { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--muted); }
+  .tablewrap { overflow-x: auto; border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface); }
+  table.ft { width: 100%; border-collapse: collapse; font-size: 14px; min-width: 860px; }
+  table.ft th { text-align: left; font-size: 12px; color: var(--muted); font-weight: 700; padding: 10px; border-bottom: 1px solid var(--line); background: var(--sunk); }
+  table.ft td { padding: 8px 10px; border-bottom: 1px solid var(--line); vertical-align: middle; }
+  table.ft tr:last-child td { border-bottom: 0; }
+  table.ft tr.wait td { color: var(--muted); }
+  table.ft tr.active td { background: color-mix(in srgb, var(--files) 8%, transparent); }
+  table.ft input[type="text"] { font-family: var(--font-mono); font-size: 12px; padding: 6px 8px; }
+  table.ft select { padding: 6px 8px; font-size: 13px; }
+  .orig { font-family: var(--font-mono); font-size: 12px; max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .frames { display: flex; gap: 3px; }
+  .frames i { width: 26px; height: 15px; border-radius: 2px; background: var(--sunk); display: block; }
+  .tree { font-family: var(--font-mono); font-size: 13px; background: var(--sunk); border-radius: 6px; padding: 12px 14px; overflow-x: auto; line-height: 1.7; }
+  .tree .d { font-weight: 600; }
+  .tree .f { padding-left: 22px; color: var(--muted); white-space: nowrap; }
+  .tree .sub { padding-left: 14px; }
+
+  /* billing */
+  .plans { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
+  .plan { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 18px; display: flex; flex-direction: column; gap: 12px; }
+  .plan.cur { border: 2px solid var(--money); }
+  .plan .price { font-family: var(--font-mono); font-size: 28px; font-weight: 600; }
+  .plan .price small { font-size: 14px; color: var(--muted); }
+  .plan ul { margin: 0; padding-left: 18px; font-size: 14px; display: flex; flex-direction: column; gap: 5px; }
+  .plan .btn { margin-top: auto; justify-content: center; }
+  .usage { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px 22px; }
+  .u { display: flex; flex-direction: column; gap: 6px; font-size: 14px; }
+  .u .lbl { display: flex; justify-content: space-between; gap: 8px; }
+  .u .lbl span:last-child { font-family: var(--font-mono); font-size: 13px; color: var(--muted); font-variant-numeric: tabular-nums; }
+  table.cost { border-collapse: collapse; font-size: 14px; width: 100%; font-variant-numeric: tabular-nums; }
+  table.cost td, table.cost th { padding: 7px 8px; border-bottom: 1px solid var(--line); text-align: left; }
+  table.cost td:last-child, table.cost th:last-child { text-align: right; font-family: var(--font-mono); }
+  table.cost th { font-size: 12px; color: var(--muted); }
+
+  /* overlay: modal + drawer */
+  .scrim { position: fixed; inset: 0; background: rgb(10 12 16 / 0.5); z-index: 40; display: flex; align-items: center; justify-content: center; padding: 16px; }
+  .modal { background: var(--surface); border-radius: 10px; max-width: 440px; width: 100%; padding: 22px; display: flex; flex-direction: column; gap: 14px; box-shadow: 0 20px 50px rgb(0 0 0 / 0.3); }
+  .modal h2 { font-size: 21px; }
+  .modal .row { justify-content: flex-end; }
+  .scrim.side { justify-content: flex-end; align-items: stretch; padding: 0; }
+  .drawer { background: var(--surface); width: min(420px, 100%); height: 100%; padding: 22px; padding-right: max(22px, env(safe-area-inset-right, 0px)); padding-bottom: max(22px, env(safe-area-inset-bottom, 0px)); display: flex; flex-direction: column; gap: 14px; overflow-y: auto; }
+  .drawer .row:last-child { margin-top: auto; }
+  .toast { position: fixed; left: 50%; transform: translateX(-50%); bottom: calc(24px + env(safe-area-inset-bottom, 0px)); background: var(--fg); color: var(--bg); padding: 10px 16px; border-radius: 8px; font-weight: 700; font-size: 14px; z-index: 50; max-width: calc(100% - 32px); box-shadow: 0 8px 24px rgb(0 0 0 / 0.25); }
+
+  @media (max-width: 960px) {
+    .tgrid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .idea-input { grid-template-columns: 1fr; }
+  }
+  @media (max-width: 760px) {
+    .app { grid-template-columns: minmax(0, 1fr); }
+    .rail { position: fixed; top: auto; bottom: 0; left: 0; right: 0; height: auto; z-index: 30; flex-direction: row; padding: 6px max(8px, env(safe-area-inset-right, 0px)) calc(6px + env(safe-area-inset-bottom, 0px)) max(8px, env(safe-area-inset-left, 0px)); border-right: 0; border-top: 1px solid var(--line); }
+    .brand, .rail-usage { display: none; }
+    .nav { flex-direction: row; flex: 1; justify-content: space-around; }
+    .nav a { flex-direction: column; gap: 2px; font-size: 11px; padding: 6px 4px; }
+    .nav a.on { box-shadow: inset 0 3px 0 var(--c, var(--fg)); }
+    .main { padding-bottom: 110px; }
+    .tiles, .upnext, .plans, .usage, .rule { grid-template-columns: 1fr; }
+    .board { grid-template-columns: repeat(5, minmax(220px, 82%)); scroll-snap-type: x mandatory; }
+    .col { scroll-snap-align: start; }
+    .toast { bottom: calc(90px + env(safe-area-inset-bottom, 0px)); }
+  }
+  @media (max-width: 480px) { .tgrid { grid-template-columns: 1fr; } }
+  @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
+</style>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+  <defs>
+    <filter id="f-protan" color-interpolation-filters="sRGB"><feColorMatrix type="matrix" values="0.567 0.433 0 0 0  0.558 0.442 0 0 0  0 0.242 0.758 0 0  0 0 0 1 0"/></filter>
+    <filter id="f-deutan" color-interpolation-filters="sRGB"><feColorMatrix type="matrix" values="0.625 0.375 0 0 0  0.7 0.3 0 0 0  0 0.3 0.7 0 0  0 0 0 1 0"/></filter>
+    <filter id="f-tritan" color-interpolation-filters="sRGB"><feColorMatrix type="matrix" values="0.95 0.05 0 0 0  0 0.433 0.567 0 0  0 0.475 0.525 0 0  0 0 0 1 0"/></filter>
+  </defs>
+</svg>
+
+<div class="app">
+  <aside class="rail">
+    <div class="brand">YT Dashboard <small>prototype</small></div>
+    <nav class="nav" aria-label="Main">
+      <a href="#home" data-view="home"><svg viewBox="0 0 24 24"><path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6h-6v6H4a1 1 0 0 1-1-1z"/></svg>Home</a>
+      <a href="#ideas" data-view="ideas" class="ideas"><svg viewBox="0 0 24 24"><path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-4 10.5c.7.7 1 1.5 1 2.5h6c0-1 .3-1.8 1-2.5A6 6 0 0 0 12 3z"/></svg>Ideas</a>
+      <a href="#thumbnails" data-view="thumbnails" class="thumbs"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="9" cy="10" r="2"/><path d="M21 17l-5-5-8 8"/></svg>Thumbnails</a>
+      <a href="#files" data-view="files" class="files"><svg viewBox="0 0 24 24"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>Files</a>
+      <a href="#plan" data-view="plan" class="money"><svg viewBox="0 0 24 24"><rect x="3" y="6" width="18" height="13" rx="2"/><path d="M3 10h18"/></svg>Plan</a>
+    </nav>
+    <div class="rail-usage" id="rail-usage"></div>
+  </aside>
+  <main class="main">
+    <div class="inner">
+      <div class="topbar">
+        <div class="demo-note"><b>Demo</b> Fake data and fake AI. Nothing leaves this page.</div>
+        <div class="planswitch">Try it as
+          <div class="seg" id="planseg" role="group" aria-label="Switch plan">
+            <button type="button" data-act="plan" data-plan="free">Free</button>
+            <button type="button" data-act="plan" data-plan="creator">Creator</button>
+            <button type="button" data-act="plan" data-plan="pro">Pro</button>
+          </div>
+          <button type="button" class="linkbtn" data-act="reset">Reset demo</button>
+        </div>
+      </div>
+      <div id="view"></div>
+    </div>
+  </main>
+</div>
+<div id="overlay"></div>
+<div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
+<input type="file" id="thumb-file" accept="image/*" multiple class="sr" tabindex="-1">
+
+<script>
+(() => {
+  const $ = (s, r = document) => r.querySelector(s);
+  const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  const slug = s => String(s).toLowerCase().replace(/&/g, 'and').replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 40);
+  const wait = ms => new Promise(r => setTimeout(r, ms));
+  const lim = n => n === Infinity ? 'Unlimited' : n.toLocaleString();
+
+  const PLANS = {
+    free: { name: 'Free', price: 0, projects: 10, scores: 3, files: 25, ideaRuns: 10, rules: false, notion: false, drive: false, spaces: 1 },
+    creator: { name: 'Creator', price: 25, projects: Infinity, scores: 50, files: 500, ideaRuns: Infinity, rules: true, notion: true, drive: false, spaces: 1 },
+    pro: { name: 'Pro', price: 40, projects: Infinity, scores: 150, files: 2000, ideaRuns: Infinity, rules: true, notion: true, drive: true, spaces: 5 }
+  };
+  const COST = { scores: 0.011, files: 0.004, ideaRuns: 0.045 };
+  const STATUSES = [['idea', 'Idea'], ['scripting', 'Scripting'], ['filming', 'Filming'], ['editing', 'Editing'], ['published', 'Published']];
+  const FORMATS = ['Tutorial', 'Comparison', 'Opinion', 'Tour', 'Review', 'Vlog', 'Q&A', 'Collab'];
+  const TYPES = {
+    aroll: { label: 'A-roll', key: 'aroll', folder: 'A-roll' },
+    broll: { label: 'B-roll', key: 'broll', folder: 'B-roll' },
+    talking: { label: 'Talking head', key: 'talking', folder: 'Talking head' },
+    vo: { label: 'Voiceover', key: 'vo', folder: 'Voiceover' },
+    music: { label: 'Music', key: 'music', folder: 'Music' },
+    screenshot: { label: 'Screenshot', key: 'screenshot', folder: 'Screenshots' },
+    photo: { label: 'Photo', key: 'photo', folder: 'Photos' }
+  };
+  const tcolor = t => `var(--t-${t})`;
+
+  const SAMPLE_NOTES = `desk setup tour?? ppl keep asking about my monitor arm
+maybe a $500 vs $5000 desk comparison
+why I stopped using notion for scripts (hot take, will get comments)
+editing speedrun, the premiere shortcuts I actually use
+Q&A for 100k?? ask community tab first
+buy new mic before filming anything else
+thumbnail idea: me looking shocked at a tiny desk
+collab with sam about burnout, she said yes in DMs`;
+
+  const SEED = () => [
+    { id: 1, title: 'Studio lighting on a $100 budget', hook: 'You do not need a softbox. You need a shower curtain.', format: 'Tutorial', status: 'editing', notes: 'Film B-roll of the curtain trick.' },
+    { id: 2, title: 'A day in my life as a full-time creator', hook: 'Here is what 9 to 5 looks like with no boss.', format: 'Vlog', status: 'published', notes: '' },
+    { id: 3, title: 'Best free editing apps in 2026', hook: 'I tested 9 free editors so you never pay for one.', format: 'Review', status: 'scripting', notes: 'DaVinci, CapCut, Clipchamp.' },
+    { id: 4, title: 'How I plan a month of videos in one afternoon', hook: 'One afternoon. Thirty days of uploads.', format: 'Tutorial', status: 'filming', notes: '' },
+    { id: 5, title: 'Reacting to my first ever video', hook: 'This is painful. Watch anyway.', format: 'Vlog', status: 'idea', notes: '' }
+  ];
+
+  const MOCK_FILES = [
+    { orig: 'C0012.MP4', size: '1.8 GB', len: '4:12', type: 'talking', desc: 'intro take 1', what: 'Person at desk talking to camera, first intro take', date: '2026-10-26' },
+    { orig: 'C0013.MP4', size: '2.1 GB', len: '4:51', type: 'talking', desc: 'intro take 2', what: 'Same setup, second intro take, smiling more', date: '2026-10-26' },
+    { orig: 'GX010233.MP4', size: '3.4 GB', len: '8:03', type: 'aroll', desc: 'walk to studio', what: 'Handheld walk outside, talking while walking to studio', date: '2026-10-25' },
+    { orig: 'IMG_4471.MOV', size: '410 MB', len: '0:38', type: 'broll', desc: 'cable closeup', what: 'Close-up of cable management under the desk', date: '2026-10-26' },
+    { orig: 'IMG_4472.MOV', size: '520 MB', len: '0:46', type: 'broll', desc: 'slow desk pan', what: 'Slow left to right pan across the full desk', date: '2026-10-26' },
+    { orig: 'Screen Recording 2026-10-24 at 3.02.11 PM.mov', size: '880 MB', len: '2:10', type: 'broll', desc: 'premiere timeline', what: 'Screen recording of a Premiere Pro timeline', date: '2026-10-24' },
+    { orig: 'voice_take3.wav', size: '64 MB', len: '3:30', type: 'vo', desc: 'sponsor read', what: 'Audio only. Sponsor read, third take', date: '2026-10-26' },
+    { orig: 'lofi_bed_final.mp3', size: '7 MB', len: '2:45', type: 'music', desc: 'lofi bed', what: 'Audio only. Calm lofi background track', date: '2026-10-20' },
+    { orig: 'Screenshot 2026-10-25 at 9.14.02 PM.png', size: '2 MB', len: '', type: 'screenshot', desc: 'studio analytics', what: 'YouTube Studio analytics page, views graph', date: '2026-10-25' },
+    { orig: 'DSC_0091.JPG', size: '12 MB', len: '', type: 'photo', desc: 'monitor arm', what: 'Product photo of the monitor arm on white', date: '2026-10-26' }
+  ];
+
+  const fresh = () => ({
+    plan: 'free',
+    usage: { scores: 0, files: 0, ideaRuns: 0 },
+    projects: SEED(), nextId: 6, freshIds: [],
+    ideas: { text: SAMPLE_NOTES, busy: false, result: null, pending: [] },
+    thumbs: { title: 'I tried a $5,000 desk setup for 30 days', items: [], view: 'normal', overlay: true, busy: false, nextId: 1 },
+    files: { stage: 'empty', rows: [], project: 'desk-setup', rule: '{date}_{project}_{type}_{desc}', scanned: 0, tree: null }
+  });
+  let state = fresh();
+  let modalOpen = null; // {kind, ...}
+
+  const P = () => PLANS[state.plan];
+  const left = k => Math.max(0, P()[k] - state.usage[k]);
+
+  /* ---------- toast ---------- */
+  let toastT;
+  function toast(msg) {
+    const t = $('#toast'); t.textContent = msg; t.hidden = false;
+    clearTimeout(toastT); toastT = setTimeout(() => { t.hidden = true; }, 2600);
+  }
+
+  /* ---------- routing ---------- */
+  const VIEWS = ['home', 'ideas', 'thumbnails', 'files', 'plan'];
+  const view = () => { const h = location.hash.slice(1); return VIEWS.includes(h) ? h : 'home'; };
+
+  function render() {
+    const v = view();
+    document.querySelectorAll('.nav a').forEach(a => a.classList.toggle('on', a.dataset.view === v));
+    document.querySelectorAll('#planseg button').forEach(b => b.classList.toggle('on', b.dataset.plan === state.plan));
+    $('#view').innerHTML = ({ home: vHome, ideas: vIdeas, thumbnails: vThumbs, files: vFiles, plan: vPlan })[v]();
+    renderRail();
+    renderOverlay();
+  }
+
+  function usageBar(k, label, cls = '') {
+    const cap = P()[k]; const used = state.usage[k];
+    const pct = cap === Infinity ? Math.min(100, used ? 4 : 0) : Math.min(100, used / cap * 100);
+    return `<div class="u ${cls}"><div class="lbl"><span>${label}</span><span>${used} of ${lim(cap)}</span></div><div class="bar ${cap !== Infinity && used >= cap ? 'full' : ''}"><i style="width:${pct}%"></i></div></div>`;
+  }
+  function renderRail() {
+    const projCap = P().projects;
+    $('#rail-usage').innerHTML = `
+      <div class="muted" style="font-weight:700">This month on ${P().name}</div>
+      ${railRow('Projects', state.projects.length, projCap, 'ideas')}
+      ${railRow('AI thumbnail scores', state.usage.scores, P().scores, 'thumbs')}
+      ${railRow('Files sorted', state.usage.files, P().files, 'files')}`;
+  }
+  function railRow(label, used, cap, cls) {
+    const pct = cap === Infinity ? 3 : Math.min(100, used / cap * 100);
+    return `<div class="${cls}"><div class="lbl"><span>${label}</span><span class="mono">${used}/${cap === Infinity ? '∞' : cap}</span></div><div class="bar ${cap !== Infinity && used >= cap ? 'full' : ''}"><i style="width:${pct}%"></i></div></div>`;
+  }
+
+  function steps(list, now) {
+    return `<ol class="steps">${list.map((s, i) => `<li class="${i < now ? 'done' : i === now ? 'now' : ''}"><span><b>${i + 1}</b></span>${s}</li>`).join('')}</ol>`;
+  }
+
+  /* ---------- HOME ---------- */
+  function vHome() {
+    const by = s => state.projects.filter(p => p.status === s);
+    const next = by('filming')[0] || by('scripting')[0] || by('idea')[0];
+    const scored = state.thumbs.items.filter(t => t.score).length;
+    return `
+      <div class="phead"><h1>What do you want to do?</h1><p>Pick one. Each tool does one job and tells you the next step.</p></div>
+      <div class="tiles">
+        <a class="tile ideas" href="#ideas"><h2>Sort my ideas</h2><p>Paste messy notes. Get video cards on a board.</p><span class="stat">${state.projects.length} projects. ${by('filming').length} filming now.</span><span class="go">Open Ideas</span></a>
+        <a class="tile thumbs" href="#thumbnails"><h2>Test thumbnails</h2><p>Upload 2 to 6. See which one wins and why.</p><span class="stat">${scored ? scored + ' scored so far.' : 'No tests yet.'} ${left('scores')} AI scores left.</span><span class="go">Open Thumbnails</span></a>
+        <a class="tile files" href="#files"><h2>Clean up footage</h2><p>Point at a folder. Get clean names and sorted folders.</p><span class="stat">${left('files')} files left this month.</span><span class="go">Open Files</span></a>
+      </div>
+      <div class="upnext">
+        <div class="panel ideas"><span class="bigq">Up next on your board</span>${next ? `<h2 style="font-size:20px">${esc(next.title)}</h2><p class="muted">${esc(next.hook)}</p><div class="row"><span class="chip" style="--chip:var(--ideas)">${STATUSES.find(s => s[0] === next.status)[1]}</span><span class="chip">${esc(next.format)}</span></div>` : '<p class="muted">Nothing in progress. Add an idea to get started.</p>'}</div>
+        <div class="panel money"><span class="bigq">This month on ${P().name}</span>${usageBar('scores', 'AI thumbnail scores')}${usageBar('files', 'Files sorted')}${usageBar('ideaRuns', 'Idea sorting runs')}</div>
+      </div>`;
+  }
+
+  /* ---------- IDEAS ---------- */
+  function vIdeas() {
+    const I = state.ideas;
+    const step = I.result ? 2 : I.busy ? 1 : 0;
+    const cap = P().projects;
+    return `
+      <div class="phead ideas"><h1>Ideas</h1><p>Dump everything. Spelling and order do not matter.</p>${steps(['Paste notes', 'Sort with AI', 'Drag cards'], step)}</div>
+      <div class="idea-input ideas">
+        <div class="panel">
+          <label class="fld" for="idea-text">Brain dump</label>
+          <textarea id="idea-text" rows="9" placeholder="One thought per line works best">${esc(I.text)}</textarea>
+          <div class="row">
+            <button class="btn primary" data-act="organize" ${I.busy ? 'disabled' : ''}>${I.busy ? '<span class="spinner"></span>Sorting your notes' : 'Sort my ideas'}</button>
+            <span class="hint">${P().ideaRuns === Infinity ? 'Unlimited runs' : `<b>${left('ideaRuns')}</b> of ${P().ideaRuns} runs left`}. Projects: <b>${state.projects.length}</b> of ${lim(cap)}.</span>
+          </div>
+        </div>
+        <div class="panel result">${ideaResult()}</div>
+      </div>
+      <div class="board ideas" id="board">
+        ${STATUSES.map(([k, label]) => {
+          const cards = state.projects.filter(p => p.status === k);
+          return `<section class="col" data-col="${k}" aria-label="${label}">
+            <div class="col-head"><span>${label}</span><span class="n">${cards.length}</span></div>
+            ${cards.map(p => `<button type="button" class="card ${state.freshIds.includes(p.id) ? 'fresh' : ''}" draggable="true" data-card="${p.id}" data-act="open-card"><b>${esc(p.title)}</b><span class="hook">${esc(p.hook)}</span><span class="chip">${esc(p.format)}</span></button>`).join('')}
+            ${k === 'idea' ? '<button type="button" class="addcard" data-act="add-card">+ Add a card</button>' : ''}
+          </section>`;
+        }).join('')}
+      </div>
+      <p class="hint">Drag a card to move it. On a phone, tap a card and change its status.</p>`;
+  }
+  function ideaResult() {
+    const r = state.ideas.result;
+    if (state.ideas.busy) return `<h3>Sorting</h3><p class="muted">Grouping your notes and writing a title and hook for each video.</p>`;
+    if (!r) return `<h3>What you will get</h3><ul><li>A card for each video idea, with a working title and hook</li><li>To-dos pulled out so they stop cluttering ideas</li><li>Thumbnail notes attached to the right card</li></ul><p class="empty">Nothing sorted yet. Hit the button.</p>`;
+    return `<h3>Sorted ${r.total} notes</h3>
+      <div><span class="chip" style="--chip:var(--ideas)">${r.added.length} new cards</span> <span class="chip">${r.todos.length} to-dos</span> <span class="chip">${r.thumbs.length} thumbnail notes</span></div>
+      ${r.todos.length ? `<div><b>To-dos</b><ul>${r.todos.map(t => `<li>${esc(t)}</li>`).join('')}</ul></div>` : ''}
+      ${r.thumbs.length ? `<div><b>Thumbnail notes</b><ul>${r.thumbs.map(t => `<li>${esc(t.text)}${t.to ? ` <span class="muted">added to "${esc(t.to)}"</span>` : ''}</li>`).join('')}</ul></div>` : ''}
+      ${state.ideas.pending.length ? `<div class="panel" style="border-color:var(--warn);padding:12px"><b>${state.ideas.pending.length} idea${state.ideas.pending.length > 1 ? 's' : ''} did not fit.</b><span class="muted">Free holds 10 projects. Nothing is lost, they are waiting here.</span><div class="row"><button class="btn primary money" data-act="upgrade-to" data-plan="creator">Get unlimited projects</button></div></div>` : ''}`;
+  }
+
+  const KNOWN = [
+    [/desk setup tour/i, { title: 'My desk setup tour (and the monitor arm everyone asks about)', hook: 'You asked about the arm 200 times. Here is the whole desk.', format: 'Tour' }],
+    [/\$500 vs \$5000/i, { title: '$500 desk vs $5,000 desk', hook: 'One of these costs 10 times more. Can you tell which?', format: 'Comparison' }],
+    [/notion/i, { title: 'Why I stopped writing scripts in Notion', hook: 'Three years in Notion. I quit in one day.', format: 'Opinion' }],
+    [/speedrun/i, { title: 'Editing speedrun with the Premiere shortcuts I actually use', hook: 'Watch me cut a 10 minute video in 10 minutes.', format: 'Tutorial' }],
+    [/q&a/i, { title: '100K Q&A', hook: 'You asked. I answered all of it. Even that one.', format: 'Q&A' }],
+    [/collab/i, { title: 'Creator burnout, a talk with Sam', hook: 'Two creators. One honest talk about burning out.', format: 'Collab' }]
+  ];
+  const HOOKS = { Tutorial: 'Here is exactly how I do it, step by step.', Comparison: 'I tested both so you do not have to.', Opinion: 'This might be unpopular, but hear me out.', Tour: 'Everything I use, and what I would skip.', Review: 'The honest version, after real use.', Vlog: 'Come along for the whole thing.', 'Q&A': 'Your questions, my honest answers.', Collab: 'Two creators, one topic, no script.' };
+  function guessFormat(s) {
+    if (/\bvs\.?\b|versus|compar/i.test(s)) return 'Comparison';
+    if (/how to|tutorial|guide|shortcut|workflow|tips/i.test(s)) return 'Tutorial';
+    if (/why|hot take|unpopular|opinion|stopped/i.test(s)) return 'Opinion';
+    if (/tour|setup/i.test(s)) return 'Tour';
+    if (/review|tested|worth it/i.test(s)) return 'Review';
+    if (/q ?& ?a|questions/i.test(s)) return 'Q&A';
+    if (/collab|with @|feat/i.test(s)) return 'Collab';
+    return 'Vlog';
+  }
+  function fakeOrganize(text) {
+    const lines = text.split(/\n+/).map(l => l.replace(/^[\s\-*•\d.)]+/, '').trim()).filter(Boolean);
+    const ideas = [], todos = [], thumbs = [];
+    for (const l of lines) {
+      if (/^(buy|need to|todo|to do|email|call|order|book|remind)\b/i.test(l) || /\bbefore filming\b/i.test(l)) { todos.push(l.charAt(0).toUpperCase() + l.slice(1)); continue; }
+      if (/thumbnail/i.test(l)) { thumbs.push(l.replace(/^thumbnail( idea)?:?\s*/i, '')); continue; }
+      const k = KNOWN.find(([re]) => re.test(l));
+      if (k) { ideas.push({ ...k[1], src: l }); continue; }
+      let t = l.replace(/\?+|!+/g, '').replace(/\b(maybe|ppl|idk|lol)\b/gi, '').replace(/\s+/g, ' ').trim();
+      t = t.charAt(0).toUpperCase() + t.slice(1);
+      if (t.length > 64) t = t.slice(0, 61).replace(/\s\S*$/, '') + '...';
+      const f = guessFormat(l);
+      ideas.push({ title: t, hook: HOOKS[f], format: f, src: l });
+    }
+    return { ideas, todos, thumbs, total: lines.length };
+  }
+  async function organize() {
+    const I = state.ideas;
+    if (!I.text.trim()) { toast('Paste a few notes first.'); return; }
+    if (left('ideaRuns') <= 0) return upgrade('ideaRuns');
+    I.busy = true; render();
+    await wait(1400);
+    state.usage.ideaRuns++;
+    const out = fakeOrganize(I.text);
+    const room = P().projects - state.projects.length;
+    const fit = out.ideas.slice(0, Math.max(0, room));
+    I.pending = out.ideas.slice(fit.length);
+    const added = fit.map(x => ({ id: state.nextId++, title: x.title, hook: x.hook, format: x.format, status: 'idea', notes: '' }));
+    state.projects.push(...added);
+    const thumbs = out.thumbs.map(text => {
+      const words = text.toLowerCase().match(/[a-z]{4,}/g) || [];
+      const target = added.find(a => words.some(w => a.title.toLowerCase().includes(w)));
+      if (target) target.notes = (target.notes ? target.notes + '\n' : '') + 'Thumbnail: ' + text;
+      return { text, to: target ? target.title : null };
+    });
+    state.freshIds = added.map(a => a.id);
+    I.result = { total: out.total, added, todos: out.todos, thumbs };
+    I.busy = false; render();
+    toast(`Added ${added.length} card${added.length === 1 ? '' : 's'} to Idea.`);
+    setTimeout(() => { state.freshIds = []; }, 2500);
+  }
+  function addPendingIfRoom() {
+    const I = state.ideas; if (!I.pending.length) return;
+    const room = P().projects - state.projects.length;
+    const fit = I.pending.splice(0, Math.max(0, room));
+    const added = fit.map(x => ({ id: state.nextId++, title: x.title, hook: x.hook, format: x.format, status: 'idea', notes: '' }));
+    state.projects.push(...added); state.freshIds = added.map(a => a.id);
+    if (added.length) toast(`Added the ${added.length} waiting idea${added.length > 1 ? 's' : ''}.`);
+    setTimeout(() => { state.freshIds = []; }, 2500);
+  }
+
+  /* drag and drop */
+  let dragId = null;
+  document.addEventListener('dragstart', e => { const c = e.target.closest?.('[data-card]'); if (!c) return; dragId = +c.dataset.card; c.classList.add('dragging'); e.dataTransfer.effectAllowed = 'move'; try { e.dataTransfer.setData('text/plain', String(dragId)); } catch (_) {} });
+  document.addEventListener('dragend', e => { e.target.closest?.('[data-card]')?.classList.remove('dragging'); document.querySelectorAll('.col.over').forEach(c => c.classList.remove('over')); });
+  document.addEventListener('dragover', e => {
+    const col = e.target.closest?.('[data-col]');
+    if (col && dragId != null) { e.preventDefault(); document.querySelectorAll('.col.over').forEach(c => c !== col && c.classList.remove('over')); col.classList.add('over'); }
+    const dz = e.target.closest?.('.dropzone'); if (dz && e.dataTransfer?.types?.includes('Files')) { e.preventDefault(); dz.classList.add('over'); }
+  });
+  document.addEventListener('dragleave', e => { const dz = e.target.closest?.('.dropzone'); if (dz) dz.classList.remove('over'); });
+  document.addEventListener('drop', e => {
+    const col = e.target.closest?.('[data-col]');
+    if (col && dragId != null) {
+      e.preventDefault(); const p = state.projects.find(x => x.id === dragId);
+      if (p && p.status !== col.dataset.col) { p.status = col.dataset.col; toast(`Moved to ${STATUSES.find(s => s[0] === p.status)[1]}.`); }
+      dragId = null; render(); return;
+    }
+    const dz = e.target.closest?.('.dropzone');
+    if (dz && e.dataTransfer?.files?.length) { e.preventDefault(); addThumbFiles(e.dataTransfer.files); }
+  });
+
+  /* ---------- THUMBNAILS ---------- */
+  const VIEWS_T = [['normal', 'Normal'], ['protan', 'Protanopia'], ['deutan', 'Deuteranopia'], ['tritan', 'Tritanopia'], ['blur', 'Low vision'], ['small', 'Phone size']];
+  function vThumbs() {
+    const T = state.thumbs; const n = T.items.length;
+    const unscored = T.items.filter(t => !t.score).length;
+    const anyScore = T.items.some(t => t.score);
+    const step = anyScore ? 2 : n >= 2 ? 1 : 0;
+    const best = anyScore ? T.items.filter(t => t.score).reduce((a, b) => (b.score.total > a.score.total ? b : a)) : null;
+    const viewCls = T.view === 'small' ? 'small' : T.view === 'normal' ? '' : 'f-' + T.view;
+    return `
+      <div class="phead thumbs"><h1>Thumbnails</h1><p>Accessibility checks are free and instant. AI scoring uses one credit per thumbnail.</p>${steps(['Add 2 to 6 thumbnails', 'Check accessibility', 'Score with AI'], step)}</div>
+      <div class="panel thumbs">
+        <div class="row">
+          <label class="fld grow" for="thumb-title">Video title<input type="text" id="thumb-title" value="${esc(T.title)}"></label>
+        </div>
+        ${n ? '' : `<div class="dropzone"><b>Drop images here</b><span>PNG or JPG, 1280 x 720 is ideal</span><div class="row" style="justify-content:center"><button class="btn" data-act="pick-thumbs">Choose images</button><button class="btn primary" data-act="sample-thumbs">Use 3 sample thumbnails</button></div></div>`}
+        ${n ? `<div class="row" style="justify-content:space-between">
+          <div class="seg" role="group" aria-label="Preview as">${VIEWS_T.map(([k, l]) => `<button type="button" class="${T.view === k ? 'on' : ''}" data-act="tview" data-v="${k}">${l}</button>`).join('')}</div>
+          <label class="row hint" style="gap:6px"><input type="checkbox" id="t-overlay" ${T.overlay ? 'checked' : ''}> Show YouTube timestamp and buttons</label>
+        </div>` : ''}
+      </div>
+      ${n ? `<div class="tgrid ${viewCls}">${T.items.map(t => thumbCard(t, best)).join('')}</div>
+      <div class="panel thumbs">
+        <div class="row">
+          <button class="btn primary" data-act="score" ${T.busy || !unscored ? 'disabled' : ''}>${T.busy ? '<span class="spinner"></span>Scoring' : unscored ? `Score ${unscored} thumbnail${unscored > 1 ? 's' : ''} with AI` : 'All scored'}</button>
+          ${n < 6 ? '<button class="btn" data-act="pick-thumbs">Add more</button>' : ''}
+          <span class="hint"><b>${left('scores')}</b> of ${P().scores} AI scores left this month.${unscored ? ` This uses ${unscored}.` : ''}</span>
+        </div>
+        ${best ? `<div class="row"><span class="hint">Winner: <b>${esc(best.name)}</b> at ${best.score.total}.</span><button class="btn" data-act="notion">${P().notion ? '' : '<span class="lock">\u{1F512}</span>'}Send winner to Notion</button></div>` : ''}
+      </div>` : ''}`;
+  }
+  function thumbCard(t, best) {
+    const isWin = best && best.id === t.id && state.thumbs.items.filter(x => x.score).length > 1;
+    const s = t.score;
+    return `<article class="tcard ${isWin ? 'winner' : ''}">
+      ${isWin ? '<span class="wbadge">Winner</span>' : ''}
+      <div class="tframe"><img src="${t.src}" alt="${esc(t.name)}">${state.thumbs.overlay ? '<div class="ov"><div class="zone"></div><span class="ts">12:34</span><div class="q"><i></i><i></i></div></div>' : ''}</div>
+      <div class="tname"><span>${esc(t.name)}</span><button class="xbtn" data-act="rm-thumb" data-id="${t.id}" aria-label="Remove ${esc(t.name)}">×</button></div>
+      <ul class="checks">${t.checks ? t.checks.map(c => `<li class="${c.ok ? 'ok' : 'warn'}">${esc(c.msg)}</li>`).join('') : '<li class="ok">Checking</li>'}</ul>
+      ${s ? `<div class="score"><div class="total"><b>${s.total}</b><span class="muted">out of 100</span></div>
+        <div class="subs">${['clarity', 'emotion', 'contrast', 'text', 'curiosity'].map(k => `<span>${k[0].toUpperCase() + k.slice(1)}</span><div class="bar"><i style="width:${s[k] * 10}%"></i></div><span class="v">${s[k]}</span>`).join('')}</div>
+        <p class="why">${esc(s.why)}</p></div>` : ''}
+    </article>`;
+  }
+
+  function drawSample(kind) {
+    const c = document.createElement('canvas'); c.width = 640; c.height = 360; const x = c.getContext('2d');
+    if (kind === 'a') {
+      x.fillStyle = '#ffd23f'; x.fillRect(0, 0, 640, 360);
+      x.fillStyle = '#e0a878'; x.beginPath(); x.ellipse(180, 205, 115, 135, 0, 0, Math.PI * 2); x.fill();
+      x.fillStyle = '#3b2416'; x.beginPath(); x.ellipse(180, 105, 120, 55, 0, Math.PI, 0); x.fill();
+      x.fillStyle = '#fff'; [[140, 185], [220, 185]].forEach(([a, b]) => { x.beginPath(); x.arc(a, b, 24, 0, 7); x.fill(); });
+      x.fillStyle = '#111'; [[140, 188], [220, 188]].forEach(([a, b]) => { x.beginPath(); x.arc(a, b, 10, 0, 7); x.fill(); });
+      x.strokeStyle = '#3b2416'; x.lineWidth = 8; x.beginPath(); x.moveTo(112, 140); x.lineTo(162, 130); x.moveTo(198, 130); x.lineTo(248, 140); x.stroke();
+      x.fillStyle = '#5a1a12'; x.beginPath(); x.ellipse(180, 275, 28, 38, 0, 0, 7); x.fill();
+      x.font = '900 86px Impact, "Arial Black", sans-serif'; x.textAlign = 'left'; x.lineJoin = 'round';
+      x.lineWidth = 10; x.strokeStyle = '#fff'; x.fillStyle = '#111';
+      [['$5,000', 330, 150], ['DESK?', 330, 245]].forEach(([s, a, b]) => { x.strokeText(s, a, b); x.fillText(s, a, b); });
+    } else if (kind === 'b') {
+      x.fillStyle = '#1d2b53'; x.fillRect(0, 0, 640, 360);
+      x.fillStyle = '#4a3426'; x.fillRect(0, 250, 640, 26);
+      x.fillStyle = '#2a2a2e'; x.fillRect(215, 110, 210, 125); x.fillStyle = '#2e4a8a'; x.fillRect(225, 120, 190, 105);
+      x.fillStyle = '#2a2a2e'; x.fillRect(312, 235, 16, 15);
+      x.font = 'bold 34px Arial, sans-serif'; x.textAlign = 'right'; x.fillStyle = '#c62828';
+      x.fillText('My Desk Setup 2026', 625, 338);
+    } else {
+      const g = x.createLinearGradient(0, 0, 640, 360); g.addColorStop(0, '#6d5a8c'); g.addColorStop(1, '#8c6d5a'); x.fillStyle = g; x.fillRect(0, 0, 640, 360);
+      let seed = 7; const r = () => (seed = (seed * 9301 + 49297) % 233280) / 233280;
+      for (let i = 0; i < 120; i++) { x.fillStyle = `hsl(${Math.floor(r() * 360)} ${40 + r() * 40}% ${35 + r() * 35}%)`; x.fillRect(r() * 640, r() * 360, 8 + r() * 50, 8 + r() * 50); }
+      x.font = 'bold 20px Arial, sans-serif'; x.fillStyle = '#f2f2f2'; x.textAlign = 'left'; x.fillText('30 DAYS WITH A $5K DESK', 18, 34);
+    }
+    return c.toDataURL('image/jpeg', 0.88);
+  }
+  const SAMPLE_SCORES = {
+    a: { clarity: 9, emotion: 9, contrast: 9, text: 8, curiosity: 8, why: 'Big shocked face and a two word question. Easy to read at phone size, and the yellow pops in a dark feed. The price makes people need the answer.' },
+    b: { clarity: 6, emotion: 3, contrast: 4, text: 4, curiosity: 5, why: 'The title sits right where YouTube puts the timestamp, so it gets covered. Red on navy is hard to read and almost vanishes for red-green colorblind viewers. No face, so it feels flat.' },
+    c: { clarity: 4, emotion: 4, contrast: 6, text: 3, curiosity: 7, why: 'The $5K hook is good but buried. At phone size the clutter turns to noise and the small text cannot be read. Pick one subject and make it big.' }
+  };
+
+  function analyze(src) {
+    return new Promise(res => {
+      const img = new Image();
+      img.onload = () => {
+        const W = 160, H = 90, c = document.createElement('canvas'); c.width = W; c.height = H;
+        const x = c.getContext('2d', { willReadFrequently: true }); x.drawImage(img, 0, 0, W, H);
+        let d; try { d = x.getImageData(0, 0, W, H).data; } catch (_) { return res(null); }
+        const N = W * H, L = new Float32Array(N); let sum = 0, mr = 0, mg = 0, mb = 0;
+        for (let i = 0; i < N; i++) { const r = d[i * 4] / 255, g = d[i * 4 + 1] / 255, b = d[i * 4 + 2] / 255; L[i] = 0.2126 * r + 0.7152 * g + 0.0722 * b; sum += L[i]; mr += r; mg += g; mb += b; }
+        const mean = sum / N; mr /= N; mg /= N; mb /= N;
+        let v = 0; for (let i = 0; i < N; i++) v += (L[i] - mean) ** 2; const sd = Math.sqrt(v / N);
+        const px = i => [d[i * 4] / 255, d[i * 4 + 1] / 255, d[i * 4 + 2] / 255];
+        const sim = (r, g, b) => [0.567 * r + 0.433 * g, 0.558 * r + 0.442 * g, 0.242 * g + 0.758 * b];
+        let edges = 0, zEdges = 0, zN = 0, dn = 0, dp = 0; const cells = new Uint16Array(16 * 9);
+        for (let y = 0; y < H - 1; y++) for (let xx = 0; xx < W - 1; xx++) {
+          const i = y * W + xx, a = px(i), r = px(i + 1), u = px(i + W);
+          const dist = Math.hypot(a[0] - r[0], a[1] - r[1], a[2] - r[2]) + Math.hypot(a[0] - u[0], a[1] - u[1], a[2] - u[2]);
+          const e = dist > 0.35;
+          if (e) {
+            edges++; cells[Math.floor(y / 10) * 16 + Math.floor(xx / 10)]++;
+            const sa = sim(...a), sr = sim(...r), su = sim(...u);
+            dn += dist; dp += Math.hypot(sa[0] - sr[0], sa[1] - sr[1], sa[2] - sr[2]) + Math.hypot(sa[0] - su[0], sa[1] - su[1], sa[2] - su[2]);
+          }
+          if (xx >= W * 0.76 && y >= H * 0.8) { zN++; if (e) zEdges++; }
+        }
+        const density = cells.filter(c => c >= 4).length / cells.length, zDensity = zN ? zEdges / zN : 0;
+        const cbRatio = dn ? dp / dn : 1;
+        const checks = [
+          sd < 0.14 ? { ok: false, msg: 'Low contrast. Looks muddy in a busy feed.' } : { ok: true, msg: 'Strong contrast' },
+          zDensity > 0.05 ? { ok: false, msg: 'Something sits under the timestamp (bottom right).' } : { ok: true, msg: 'Timestamp corner is clear' },
+          density > 0.7 ? { ok: false, msg: 'Busy. Hard to read at phone size.' } : { ok: true, msg: 'Clean enough to read small' },
+          cbRatio < 0.83 ? { ok: false, msg: 'Relies on red and green. Check the Protanopia view.' } : { ok: true, msg: 'Holds up for colorblind viewers' }
+        ];
+        res({ checks, metrics: { sd, zDensity, density, cbRatio } });
+      };
+      img.onerror = () => res(null);
+      img.src = src;
+    });
+  }
+  async function addThumb(name, src, sample) {
+    const T = state.thumbs; if (T.items.length >= 6) { toast('Six thumbnails max per test.'); return; }
+    const t = { id: T.nextId++, name, src, sample, checks: null, score: null };
+    T.items.push(t); render();
+    const a = await analyze(src);
+    t.checks = a ? a.checks : [{ ok: false, msg: 'Could not read this image.' }]; t.metrics = a?.metrics;
+    if (view() === 'thumbnails') render();
+  }
+  function addThumbFiles(list) {
+    const files = [...list].filter(f => f.type.startsWith('image/'));
+    if (!files.length) { toast('Those were not images.'); return; }
+    const room = 6 - state.thumbs.items.length;
+    if (files.length > room) toast(`Added ${Math.max(0, room)}. Six thumbnails max per test.`);
+    files.slice(0, Math.max(0, room)).forEach(f => { const r = new FileReader(); r.onload = () => addThumb(f.name, r.result, null); r.readAsDataURL(f); });
+  }
+  function fakeScore(t) {
+    if (t.sample && SAMPLE_SCORES[t.sample]) { const s = { ...SAMPLE_SCORES[t.sample] }; return { ...s, total: total(s) }; }
+    const m = t.metrics || { sd: 0.2, zDensity: 0, density: 0.4, cbRatio: 0.9 };
+    let seed = [...t.name].reduce((a, ch) => a + ch.charCodeAt(0), 0); const j = () => ((seed = (seed * 9301 + 49297) % 233280) / 233280 * 2 - 1);
+    const cl = v => Math.max(1, Math.min(10, Math.round(v)));
+    const s = {
+      clarity: cl(8 - (m.density > 0.7 ? 3 : 0) + j()),
+      emotion: cl(6 + j() * 2),
+      contrast: cl(m.sd * 40 + j()),
+      text: cl(7 - (m.zDensity > 0.05 ? 3 : 0) - (m.density > 0.7 ? 2 : 0) + j()),
+      curiosity: cl(6 + j() * 2)
+    };
+    const notes = [];
+    if (m.zDensity > 0.05) notes.push('Something important sits where the timestamp goes, so part of it gets covered.');
+    if (m.density > 0.7) notes.push('A lot of detail. At phone size it will read as noise.');
+    if (m.sd < 0.14) notes.push('Colors are close together, so it may blend into the feed.');
+    if (m.cbRatio < 0.83) notes.push('Red and green carry a lot of the image, which is lost for some colorblind viewers.');
+    if (!notes.length) notes.push('Clean layout with good contrast. It should read well at small sizes.');
+    s.why = notes.join(' ') + ' (Demo score. The real app asks Claude.)';
+    s.total = total(s); return s;
+  }
+  const total = s => Math.round((s.clarity + s.emotion + s.contrast + s.text + s.curiosity) * 2);
+  async function score() {
+    const T = state.thumbs; const todo = T.items.filter(t => !t.score);
+    if (T.items.length < 2) { toast('Add at least 2 thumbnails to compare.'); return; }
+    if (todo.length > left('scores')) return upgrade('scores', todo.length);
+    T.busy = true; render();
+    for (const t of todo) { await wait(650); t.score = fakeScore(t); state.usage.scores++; render(); }
+    T.busy = false; render();
+    toast('Scores are in.');
+  }
+
+  /* ---------- FILES ---------- */
+  function vFiles() {
+    const F = state.files;
+    const step = F.stage === 'empty' ? 0 : F.stage === 'found' || F.stage === 'scanning' ? 1 : F.stage === 'review' ? 2 : 3;
+    const n = F.rows.length;
+    return `
+      <div class="phead files"><h1>Files</h1><p>Your videos never leave your computer. Only a few tiny frames from each one are sent to the AI.</p>${steps(['Choose a folder', 'Scan', 'Check names', 'Rename and sort'], step)}</div>
+      ${F.stage === 'empty' ? `<div class="panel files"><div class="dropzone"><b>Choose your footage folder</b><span>Chrome asks for permission once. In this demo we load a sample folder instead.</span><button class="btn primary" data-act="load-folder">Choose folder</button></div><p class="hint">Works in desktop Chrome, Edge, Brave and Arc. On a phone this screen asks you to use your computer.</p></div>` : ''}
+      ${F.stage === 'found' ? `<div class="panel files"><h2 style="font-size:20px">Found ${n} files in <span class="mono">Desktop/desk-setup-raw</span></h2>
+        <p class="hint">Scanning uses <b>${n}</b> of your <b>${left('files')}</b> files left this month. You can still change every name before anything moves.</p>
+        <div class="row"><button class="btn primary" data-act="scan">Scan ${n} files</button><button class="btn" data-act="files-reset">Pick another folder</button></div></div>` : ''}
+      ${F.stage !== 'empty' && F.stage !== 'found' ? ruleBox() : ''}
+      ${F.stage !== 'empty' ? fileTable() : ''}
+      ${F.stage === 'review' ? `<div class="panel files"><div class="row"><button class="btn primary" data-act="apply">Rename and sort ${F.rows.filter(r => r.on).length} files</button><span class="hint">Files go into one folder per type. An undo log is saved first.</span></div></div>` : ''}
+      ${F.stage === 'scanning' ? `<div class="panel files"><div class="row"><span class="spinner" style="color:var(--files)"></span><b>Scanning ${F.scanned} of ${n}</b><span class="hint">Grabbing 3 frames per video in your browser. You can switch tabs.</span></div><div class="bar files"><i style="width:${F.scanned / n * 100}%"></i></div></div>` : ''}
+      ${F.stage === 'done' ? doneBox() : ''}`;
+  }
+  function ruleBox() {
+    const F = state.files; const can = P().rules;
+    return `<div class="panel files"><div class="rule">
+      <label class="fld" for="f-project">Project name<input type="text" id="f-project" value="${esc(F.project)}"></label>
+      <div class="fld"><label for="f-rule">Naming rule</label>
+        ${can ? `<input type="text" id="f-rule" value="${esc(F.rule)}" class="mono"><div class="tokens">${['{date}', '{project}', '{type}', '{desc}', '{n}'].map(t => `<button type="button" data-act="token" data-t="${t}">${t}</button>`).join('')}<span class="hint">Click to add. Anything else is typed as-is.</span></div>`
+        : `<input type="text" id="f-rule" value="${esc(F.rule)}" class="mono" disabled><div class="locked">\u{1F512} Custom naming rules come with Creator. <button class="linkbtn" data-act="upgrade-to" data-plan="creator">See Creator</button></div>`}
+      </div></div></div>`;
+  }
+  function makeName(r, i) {
+    const F = state.files; const ext = r.orig.includes('.') ? r.orig.slice(r.orig.lastIndexOf('.')).toLowerCase() : '';
+    const sameType = F.rows.filter(x => x.type === r.type); const n = String(sameType.indexOf(r) + 1).padStart(2, '0');
+    const out = (F.rule || '{desc}').replace(/\{date\}/g, r.date).replace(/\{project\}/g, slug(F.project) || 'project').replace(/\{type\}/g, r.type).replace(/\{desc\}/g, slug(r.desc)).replace(/\{n\}/g, n);
+    return out.replace(/[\\/:*?"<>|]/g, '-') + ext;
+  }
+  function refreshNames() { state.files.rows.forEach((r, i) => { if (!r.edited) r.final = makeName(r, i); }); document.querySelectorAll('[data-fname]').forEach(inp => { const r = state.files.rows[+inp.dataset.fname]; if (r && !r.edited && document.activeElement !== inp) inp.value = r.final || ''; }); }
+  function fileTable() {
+    const F = state.files;
+    return `<div class="tablewrap files"><table class="ft"><thead><tr><th><span class="sr">Include</span></th><th>Type</th><th>Original</th><th>New name (you can edit)</th><th>What is in it</th><th>Frames</th></tr></thead><tbody>
+      ${F.rows.map((r, i) => {
+        const scanned = r.scanned; const active = F.stage === 'scanning' && i === F.scanned;
+        return `<tr class="${scanned ? '' : 'wait'} ${active ? 'active' : ''}">
+          <td><input type="checkbox" data-finc="${i}" ${r.on ? 'checked' : ''} ${F.stage !== 'review' ? 'disabled' : ''} aria-label="Include ${esc(r.orig)}"></td>
+          <td>${scanned ? (F.stage === 'review' ? `<select data-ftype="${i}" aria-label="Type">${Object.values(TYPES).map(t => `<option value="${t.key}" ${t.key === r.type ? 'selected' : ''}>${t.label}</option>`).join('')}</select>` : `<span class="chip" style="--chip:${tcolor(r.type)}">${TYPES[r.type].label}</span>`) : '<span class="muted">waiting</span>'}</td>
+          <td><div class="orig" title="${esc(r.orig)}">${esc(r.orig)}</div><span class="hint mono">${r.size}${r.len ? ' · ' + r.len : ''}</span></td>
+          <td>${scanned ? (F.stage === 'review' ? `<input type="text" data-fname="${i}" value="${esc(r.final)}" aria-label="New name for ${esc(r.orig)}">` : `<span class="mono" style="font-size:12px">${esc(r.final)}</span>`) : active ? '<span class="spinner" style="color:var(--files)"></span>' : ''}</td>
+          <td>${scanned ? esc(r.what) : ''}</td>
+          <td>${scanned ? `<div class="frames">${r.len ? [0, 1, 2].map(k => `<i style="background:color-mix(in srgb, ${tcolor(r.type)} ${30 + k * 20}%, var(--sunk))"></i>`).join('') : `<i style="background:color-mix(in srgb, ${tcolor(r.type)} 50%, var(--sunk))"></i>`}</div>` : ''}</td>
+        </tr>`;
+      }).join('')}</tbody></table></div>`;
+  }
+  function doneBox() {
+    const F = state.files; const groups = {};
+    F.rows.filter(r => r.on).forEach(r => { (groups[r.type] ||= []).push(r.final); });
+    return `<div class="panel files"><h2 style="font-size:20px">Done. ${F.rows.filter(r => r.on).length} files renamed and sorted.</h2>
+      <div class="tree"><div class="d">${esc(slug(F.project) || 'project')}/</div>${Object.entries(groups).map(([k, list]) => `<div class="sub"><div class="d" style="color:${tcolor(k)}">${TYPES[k].folder}/</div>${list.map(f => `<div class="f">${esc(f)}</div>`).join('')}</div>`).join('')}</div>
+      <div class="row"><button class="btn" data-act="undo">Undo this</button><button class="btn primary" data-act="files-reset">Sort another folder</button></div></div>`;
+  }
+  async function scan() {
+    const F = state.files; const n = F.rows.length;
+    if (n > left('files')) return upgrade('files', n);
+    state.usage.files += n;
+    F.stage = 'scanning'; F.scanned = 0; render();
+    for (let i = 0; i < n; i++) { await wait(320); F.rows[i].scanned = true; F.rows[i].final = makeName(F.rows[i], i); F.scanned = i + 1; if (view() === 'files') render(); }
+    F.stage = 'review'; render(); toast('Scan done. Check the names, then sort.');
+  }
+
+  /* ---------- PLAN ---------- */
+  function vPlan() {
+    const u = state.usage; const ai = u.scores * COST.scores + u.files * COST.files + u.ideaRuns * COST.ideaRuns;
+    const feats = {
+      free: ['Idea board up to 10 projects', '10 idea sorting runs', 'Unlimited accessibility checks', '3 AI thumbnail scores', '25 files sorted'],
+      creator: ['Unlimited projects and runs', '50 AI thumbnail scores', '500 files sorted', 'Custom naming rules', 'Send winners to Notion'],
+      pro: ['Everything in Creator', '150 AI thumbnail scores', '2,000 files sorted', 'Google Drive folders', 'Up to 5 channels', 'Priority processing']
+    };
+    return `
+      <div class="phead money"><h1>Plan</h1><p>You are on <b>${P().name}</b>. In the real app, buttons go to Stripe and cancellation lives in the Stripe portal.</p></div>
+      <div class="panel money"><h2 style="font-size:18px">This month</h2><div class="usage">
+        ${`<div class="u ideas"><div class="lbl"><span>Projects on the board</span><span>${state.projects.length} of ${lim(P().projects)}</span></div><div class="bar ${P().projects !== Infinity && state.projects.length >= P().projects ? 'full' : ''}"><i style="width:${P().projects === Infinity ? 3 : Math.min(100, state.projects.length / P().projects * 100)}%"></i></div></div>`}
+        ${usageBar('ideaRuns', 'Idea sorting runs', 'ideas')}${usageBar('scores', 'AI thumbnail scores', 'thumbs')}${usageBar('files', 'Files sorted', 'files')}
+      </div></div>
+      <div class="plans">${Object.entries(PLANS).map(([k, p]) => `<div class="plan ${k === state.plan ? 'cur' : ''}">
+        <h2 style="font-size:20px">${p.name}</h2><div class="price">$${p.price}<small> / month</small></div>
+        <ul>${feats[k].map(f => `<li>${f}</li>`).join('')}</ul>
+        ${k === state.plan ? '<button class="btn" disabled>Your plan</button>' : `<button class="btn ${p.price > P().price ? 'primary money' : ''}" data-act="plan" data-plan="${k}">${p.price > P().price ? 'Upgrade to ' : 'Switch to '}${p.name}</button>`}
+      </div>`).join('')}</div>
+      <div class="panel money"><h2 style="font-size:18px">Owner view: what this user costs you</h2><p class="hint">Only you see this, on a hidden admin page. Numbers come from the AI usage log.</p>
+        <div style="overflow-x:auto"><table class="cost"><thead><tr><th>Feature</th><th>Uses</th><th>AI cost</th></tr></thead><tbody>
+          <tr><td>Idea sorting</td><td>${u.ideaRuns}</td><td>$${(u.ideaRuns * COST.ideaRuns).toFixed(3)}</td></tr>
+          <tr><td>Thumbnail scores</td><td>${u.scores}</td><td>$${(u.scores * COST.scores).toFixed(3)}</td></tr>
+          <tr><td>File descriptions</td><td>${u.files}</td><td>$${(u.files * COST.files).toFixed(3)}</td></tr>
+          <tr><td><b>Total vs revenue</b></td><td>$${P().price} paid</td><td><b>$${ai.toFixed(2)}</b></td></tr>
+        </tbody></table></div></div>`;
+  }
+
+  /* ---------- overlay: modal + drawer ---------- */
+  const NEED = {
+    scores: n => ({ t: n ? `This test needs ${n} scores` : 'Out of AI scores', b: `You have ${left('scores')} of ${P().scores} AI scores left this month. Creator gives you 50 a month. Accessibility checks stay free either way.`, plan: state.plan === 'creator' ? 'pro' : 'creator' }),
+    files: n => ({ t: `Scanning needs ${n} files`, b: `You have ${left('files')} of ${P().files} files left this month. Creator sorts 500 a month, Pro sorts 2,000.`, plan: state.plan === 'creator' ? 'pro' : 'creator' }),
+    ideaRuns: () => ({ t: 'Out of sorting runs', b: 'Free includes 10 idea sorting runs a month. Creator is unlimited.', plan: 'creator' }),
+    projects: () => ({ t: 'Your board is full', b: 'Free holds 10 projects. Creator holds as many as you want.', plan: 'creator' }),
+    notion: () => ({ t: 'Notion comes with Creator', b: 'Send the winning thumbnail and the scores straight into your Notion video template.', plan: 'creator' })
+  };
+  function upgrade(kind, n) { modalOpen = { kind: 'up', ...NEED[kind](n) }; renderOverlay(); }
+  function renderOverlay() {
+    const o = $('#overlay');
+    if (!modalOpen) { o.innerHTML = ''; return; }
+    if (modalOpen.kind === 'up') {
+      const p = PLANS[modalOpen.plan];
+      o.innerHTML = `<div class="scrim" data-act="close-scrim"><div class="modal money" role="dialog" aria-modal="true" aria-labelledby="m-t"><h2 id="m-t">${esc(modalOpen.t)}</h2><p>${esc(modalOpen.b)}</p>
+        <div class="row"><button class="btn" data-act="close">Not now</button><button class="btn primary" data-act="upgrade-to" data-plan="${modalOpen.plan}">Upgrade to ${p.name}, $${p.price}/mo</button></div></div></div>`;
+      o.querySelector('.btn.primary')?.focus();
+    } else if (modalOpen.kind === 'card') {
+      const p = state.projects.find(x => x.id === modalOpen.id); if (!p) { modalOpen = null; o.innerHTML = ''; return; }
+      o.innerHTML = `<div class="scrim side" data-act="close-scrim"><form class="drawer ideas" id="card-form" role="dialog" aria-modal="true" aria-labelledby="d-h">
+        <h2 id="d-h" style="font-size:20px">${modalOpen.isNew ? 'New card' : 'Edit card'}</h2>
+        <label class="fld" for="d-title">Working title<input type="text" id="d-title" value="${esc(p.title)}"></label>
+        <label class="fld" for="d-hook">Hook (first 5 seconds)<textarea id="d-hook" rows="2">${esc(p.hook)}</textarea></label>
+        <div class="row"><label class="fld grow" for="d-format">Format<select id="d-format">${FORMATS.map(f => `<option ${f === p.format ? 'selected' : ''}>${f}</option>`).join('')}</select></label>
+        <label class="fld grow" for="d-status">Status<select id="d-status">${STATUSES.map(([k, l]) => `<option value="${k}" ${k === p.status ? 'selected' : ''}>${l}</option>`).join('')}</select></label></div>
+        <label class="fld" for="d-notes">Notes<textarea id="d-notes" rows="5">${esc(p.notes)}</textarea></label>
+        <div class="row"><button type="button" class="btn" data-act="del-card">Delete</button><span class="grow"></span><button type="button" class="btn" data-act="close">Cancel</button><button type="submit" class="btn primary">Save</button></div>
+      </form></div>`;
+      $('#d-title').focus();
+    }
+  }
+
+  /* ---------- actions ---------- */
+  const A = {
+    plan: el => { const old = state.plan; state.plan = el.dataset.plan; render(); if (old !== state.plan) toast(`Now viewing as ${P().name}.`); addPendingIfRoom(); if (view() === 'ideas') render(); },
+    'upgrade-to': el => { state.plan = el.dataset.plan; modalOpen = null; render(); toast(`Upgraded to ${P().name}. In the real app this goes through Stripe.`); addPendingIfRoom(); render(); },
+    close: () => { if (modalOpen?.isNew) state.projects = state.projects.filter(p => p.id !== modalOpen.id); modalOpen = null; render(); },
+    'close-scrim': (el, e) => { if (e.target === el) A.close(); },
+    reset: () => { state = fresh(); modalOpen = null; render(); toast('Demo reset.'); },
+    organize,
+    'open-card': el => { modalOpen = { kind: 'card', id: +el.dataset.card }; renderOverlay(); },
+    'add-card': () => {
+      if (state.projects.length >= P().projects) return upgrade('projects');
+      const p = { id: state.nextId++, title: '', hook: '', format: 'Vlog', status: 'idea', notes: '' };
+      state.projects.push(p); modalOpen = { kind: 'card', id: p.id, isNew: true }; renderOverlay();
+    },
+    'del-card': () => { state.projects = state.projects.filter(p => p.id !== modalOpen.id); modalOpen = null; render(); toast('Card deleted.'); },
+    'pick-thumbs': () => $('#thumb-file').click(),
+    'sample-thumbs': () => { addThumb('shocked-face-yellow.jpg', drawSample('a'), 'a'); addThumb('desk-navy-red-text.jpg', drawSample('b'), 'b'); addThumb('busy-desk-collage.jpg', drawSample('c'), 'c'); },
+    'rm-thumb': el => { state.thumbs.items = state.thumbs.items.filter(t => t.id !== +el.dataset.id); render(); },
+    tview: el => { state.thumbs.view = el.dataset.v; render(); },
+    score,
+    notion: () => { if (!P().notion) return upgrade('notion'); toast('Sent to your Notion template. (Demo)'); },
+    'load-folder': () => { const F = state.files; F.rows = MOCK_FILES.map(f => ({ ...f, on: true, scanned: false, edited: false, final: '' })); F.stage = 'found'; render(); },
+    'files-reset': () => { const F = state.files; F.stage = 'empty'; F.rows = []; F.tree = null; render(); },
+    scan,
+    token: el => { const inp = $('#f-rule'); if (!inp) return; const t = el.dataset.t; const s = inp.selectionStart ?? inp.value.length; inp.value = inp.value.slice(0, s) + t + inp.value.slice(inp.selectionEnd ?? s); state.files.rule = inp.value; refreshNames(); inp.focus(); },
+    apply: () => { const F = state.files; if (!F.rows.some(r => r.on)) { toast('Pick at least one file.'); return; } F.stage = 'done'; render(); toast('Renamed and sorted. Undo log saved.'); },
+    undo: () => { state.files.stage = 'review'; render(); toast('Undone. Files are back to their original names.'); }
+  };
+  document.addEventListener('click', e => { const el = e.target.closest('[data-act]'); if (!el) return; const f = A[el.dataset.act]; if (f) f(el, e); });
+  document.addEventListener('input', e => {
+    const t = e.target;
+    if (t.id === 'idea-text') state.ideas.text = t.value;
+    else if (t.id === 'thumb-title') state.thumbs.title = t.value;
+    else if (t.id === 'f-project') { state.files.project = t.value; refreshNames(); }
+    else if (t.id === 'f-rule') { state.files.rule = t.value; refreshNames(); }
+    else if (t.dataset.fname != null) { const r = state.files.rows[+t.dataset.fname]; r.final = t.value; r.edited = true; }
+  });
+  document.addEventListener('change', e => {
+    const t = e.target;
+    if (t.id === 'thumb-file') { addThumbFiles(t.files); t.value = ''; }
+    else if (t.id === 't-overlay') { state.thumbs.overlay = t.checked; render(); }
+    else if (t.dataset.ftype != null) { const i = +t.dataset.ftype; const r = state.files.rows[i]; r.type = t.value; r.edited = false; refreshNames(); render(); }
+    else if (t.dataset.finc != null) { state.files.rows[+t.dataset.finc].on = t.checked; render(); }
+  });
+  document.addEventListener('submit', e => {
+    if (e.target.id !== 'card-form') return; e.preventDefault();
+    const p = state.projects.find(x => x.id === modalOpen.id);
+    p.title = $('#d-title').value.trim() || 'Untitled idea'; p.hook = $('#d-hook').value.trim(); p.format = $('#d-format').value; p.status = $('#d-status').value; p.notes = $('#d-notes').value;
+    modalOpen = null; render(); toast('Saved.');
+  });
+  document.addEventListener('keydown', e => { if (e.key === 'Escape' && modalOpen) A.close(); });
+  window.addEventListener('hashchange', () => { render(); window.scrollTo(0, 0); });
+
+  function start(data) {
+    if (data && data.state) { state = data.state; }
+    render();
+  }
+  window.claude?.hot?.snapshot?.(() => ({ state }));
+  window.claude?.hot?.ready ? window.claude.hot.ready(start) : start(window.claude?.hot?.data ?? {});
+  window.__demo = { analyze, drawSample, A, get state() { return state; } };
+})();
+</script>
