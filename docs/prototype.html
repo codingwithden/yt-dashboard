@@ -1,35 +1,36 @@
 <title>YT Dashboard Prototype</title>
 <meta name="claude:viewport-fit-sides" content="cover">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=JetBrains+Mono:wght@400;600&display=swap">
 <style>
-  /* Layout: app shell. Left rail on desktop, bottom tab bar on phones. One primary action per screen, a 3-step tracker on top of each tool. */
+  /* Layout: app shell for lifestyle creators. Soft lavender-white ground, pill controls, one primary action per screen, a step tracker on every tool. Left rail on desktop, bottom tab bar on phones. */
   :root {
-    --bg: #f5f4ef; --surface: #ffffff; --sunk: #ecebe4; --fg: #1c1e23; --muted: #5c6170; --line: #dcdad1;
-    --ideas: #b8690f; --thumbs: #b02d5b; --files: #1a7772; --money: #3561c9;
-    --ok: #2b8549; --warn: #b9471f; --on-accent: #ffffff;
-    --t-aroll: #c0392b; --t-broll: #1a7772; --t-talking: #b8690f; --t-vo: #7a4cc2; --t-music: #b02d5b; --t-screenshot: #3561c9; --t-photo: #5d6b2a;
+    --bg: #f7f5fa; --surface: #ffffff; --sunk: #efecf4; --fg: #251f2c; --muted: #685f73; --line: #e2dcea;
+    --ideas: #bf5a28; --thumbs: #963776; --files: #3f7552; --money: #5254c7; --deal: #9a6a12;
+    --ok: #2c7f50; --warn: #bb4426; --on-accent: #ffffff;
+    --t-aroll: #bb4426; --t-broll: #3f7552; --t-talking: #bf5a28; --t-vo: #6d4cc0; --t-music: #963776; --t-screenshot: #5254c7; --t-photo: #8a6a12;
+    --font-display: "Bricolage Grotesque", "Avenir Next", "Segoe UI", system-ui, sans-serif;
     --font-body: "Atkinson Hyperlegible", "Segoe UI", system-ui, sans-serif;
     --font-mono: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, monospace;
-    --radius: 8px;
+    --radius: 14px;
   }
   @media (prefers-color-scheme: dark) {
     :root:not([data-theme="light"]) {
-      --bg: #14161a; --surface: #1e2127; --sunk: #181a1f; --fg: #ecebe6; --muted: #a1a7b3; --line: #32363f;
-      --ideas: #eda650; --thumbs: #ec7aa2; --files: #57c7bf; --money: #86a6f0; --ok: #62c784; --warn: #f08a5f; --on-accent: #14161a;
-      --t-aroll: #f08074; --t-broll: #57c7bf; --t-talking: #eda650; --t-vo: #b99af0; --t-music: #ec7aa2; --t-screenshot: #86a6f0; --t-photo: #b8c76a;
+      --bg: #16131b; --surface: #211d28; --sunk: #1b1821; --fg: #f2eef6; --muted: #aca4b8; --line: #363040;
+      --ideas: #f09f70; --thumbs: #e38bc6; --files: #8fc49f; --money: #a2a3f6; --deal: #e2b55a; --ok: #6cc892; --warn: #f2896a; --on-accent: #16131b;
+      --t-aroll: #f2896a; --t-broll: #8fc49f; --t-talking: #f09f70; --t-vo: #b9a1f2; --t-music: #e38bc6; --t-screenshot: #a2a3f6; --t-photo: #e2b55a;
       color-scheme: dark;
     }
   }
   :root[data-theme="dark"] {
-    --bg: #14161a; --surface: #1e2127; --sunk: #181a1f; --fg: #ecebe6; --muted: #a1a7b3; --line: #32363f;
-    --ideas: #eda650; --thumbs: #ec7aa2; --files: #57c7bf; --money: #86a6f0; --ok: #62c784; --warn: #f08a5f; --on-accent: #14161a;
-    --t-aroll: #f08074; --t-broll: #57c7bf; --t-talking: #eda650; --t-vo: #b99af0; --t-music: #ec7aa2; --t-screenshot: #86a6f0; --t-photo: #b8c76a;
+    --bg: #16131b; --surface: #211d28; --sunk: #1b1821; --fg: #f2eef6; --muted: #aca4b8; --line: #363040;
+      --ideas: #f09f70; --thumbs: #e38bc6; --files: #8fc49f; --money: #a2a3f6; --deal: #e2b55a; --ok: #6cc892; --warn: #f2896a; --on-accent: #16131b;
+      --t-aroll: #f2896a; --t-broll: #8fc49f; --t-talking: #f09f70; --t-vo: #b9a1f2; --t-music: #e38bc6; --t-screenshot: #a2a3f6; --t-photo: #e2b55a;
     color-scheme: dark;
   }
   * { box-sizing: border-box; }
   html, body { height: 100%; }
   body { background: var(--bg); color: var(--fg); font-family: var(--font-body); font-size: 16px; line-height: 1.5; }
-  h1, h2, h3 { margin: 0; line-height: 1.2; text-wrap: balance; }
+  h1, h2, h3 { margin: 0; line-height: 1.15; text-wrap: balance; font-family: var(--font-display); font-weight: 800; letter-spacing: -0.01em; }
   p { margin: 0; }
   button, input, select, textarea { font: inherit; color: inherit; }
   :focus-visible { outline: 3px solid var(--money); outline-offset: 2px; }
@@ -40,13 +41,13 @@
   /* shell */
   .app { display: grid; grid-template-columns: 220px minmax(0, 1fr); min-height: 100%; }
   .rail { position: sticky; top: 0; height: 100vh; background: var(--sunk); border-right: 1px solid var(--line); padding: 20px 14px; display: flex; flex-direction: column; gap: 22px; padding-left: max(14px, env(safe-area-inset-left, 0px)); }
-  .brand { font-weight: 700; font-size: 18px; display: flex; flex-direction: column; gap: 2px; }
+  .brand { font-family: var(--font-display); font-weight: 800; font-size: 20px; display: flex; flex-direction: column; gap: 2px; }
   .brand small { font-family: var(--font-mono); font-size: 11px; color: var(--muted); font-weight: 400; letter-spacing: 0.06em; text-transform: uppercase; }
   .nav { display: flex; flex-direction: column; gap: 4px; }
-  .nav a { display: flex; align-items: center; gap: 10px; padding: 9px 10px; border-radius: 6px; text-decoration: none; color: var(--muted); font-weight: 700; }
+  .nav a { display: flex; align-items: center; gap: 10px; padding: 9px 12px; border-radius: 999px; text-decoration: none; color: var(--muted); font-weight: 700; }
   .nav a svg { width: 20px; height: 20px; flex: none; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
   .nav a:hover { color: var(--fg); background: var(--surface); }
-  .nav a.on { color: var(--c, var(--fg)); background: var(--surface); box-shadow: inset 3px 0 0 var(--c, var(--fg)); }
+  .nav a.on { color: var(--c, var(--fg)); background: color-mix(in srgb, var(--c, var(--fg)) 12%, var(--surface)); }
   .rail-usage { margin-top: auto; display: flex; flex-direction: column; gap: 10px; font-size: 13px; }
   .rail-usage .lbl { display: flex; justify-content: space-between; gap: 8px; color: var(--muted); }
   .bar { height: 6px; border-radius: 3px; background: var(--line); overflow: hidden; }
@@ -55,6 +56,7 @@
 
   .main { min-width: 0; padding-block: 18px 60px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
   .inner { max-width: 1120px; margin: 0 auto; display: flex; flex-direction: column; gap: 22px; }
+  #view { display: flex; flex-direction: column; gap: 22px; min-width: 0; }
   .topbar { display: flex; align-items: center; justify-content: space-between; gap: 10px 16px; flex-wrap: wrap; }
   .demo-note { font-size: 13px; color: var(--muted); display: flex; align-items: center; gap: 8px; }
   .demo-note b { font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; background: var(--fg); color: var(--bg); padding: 2px 6px; border-radius: 3px; }
@@ -81,7 +83,7 @@
   .panel { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 16px; display: flex; flex-direction: column; gap: 12px; min-width: 0; }
   .row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
   .grow { flex: 1 1 220px; min-width: 0; }
-  .btn { border: 1px solid var(--line); background: var(--surface); padding: 9px 14px; border-radius: 6px; cursor: pointer; font-weight: 700; display: inline-flex; align-items: center; gap: 8px; text-decoration: none; }
+  .btn { border: 1px solid var(--line); background: var(--surface); padding: 9px 16px; border-radius: 999px; cursor: pointer; font-weight: 700; display: inline-flex; align-items: center; gap: 8px; text-decoration: none; }
   .btn:hover { border-color: var(--fg); }
   .btn.primary { background: var(--c, var(--money)); border-color: var(--c, var(--money)); color: var(--on-accent); padding: 11px 18px; font-size: 16px; }
   .btn.primary:hover { filter: brightness(1.08); }
@@ -104,7 +106,10 @@
   .tile h2 { font-size: 20px; color: var(--c); }
   .tile .stat { font-size: 14px; color: var(--muted); }
   .tile .go { margin-top: auto; font-weight: 700; color: var(--c); }
-  .upnext { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 14px; }
+  .upnext { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
+  .deals { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; font-size: 14px; }
+  .deals li { display: flex; justify-content: space-between; gap: 10px; align-items: baseline; }
+  .deals li span:first-child { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .bigq { font-size: 15px; color: var(--muted); }
 
   /* ideas */
@@ -118,12 +123,15 @@
   .col.over { border-color: var(--ideas); background: color-mix(in srgb, var(--ideas) 10%, var(--sunk)); }
   .col-head { display: flex; justify-content: space-between; align-items: center; font-weight: 700; font-size: 14px; }
   .col-head .n { font-family: var(--font-mono); font-size: 12px; color: var(--muted); }
-  .card { background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 10px; display: flex; flex-direction: column; gap: 6px; cursor: grab; font-size: 14px; text-align: left; width: 100%; }
+  .card { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 10px; display: flex; flex-direction: column; gap: 6px; cursor: grab; font-size: 14px; text-align: left; width: 100%; }
   .card:hover { border-color: var(--ideas); }
   .card.dragging { opacity: 0.4; }
   .card.fresh { animation: fresh 2.4s ease; }
   @keyframes fresh { 0%, 40% { box-shadow: 0 0 0 3px var(--ideas); } 100% { box-shadow: 0 0 0 0 transparent; } }
   .card b { font-size: 14px; line-height: 1.3; }
+  .card .tags { display: flex; gap: 4px; flex-wrap: wrap; }
+  .deal { --chip: var(--deal); }
+  .deal.soon { --chip: var(--warn); }
   .card .hook { color: var(--muted); font-size: 13px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
   .addcard { border: 1px dashed var(--line); background: none; border-radius: 6px; padding: 8px; color: var(--muted); cursor: pointer; font-weight: 700; font-size: 13px; }
   .addcard:hover { color: var(--fg); border-color: var(--fg); }
@@ -133,7 +141,7 @@
   .tcard { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 12px; display: flex; flex-direction: column; gap: 10px; position: relative; min-width: 0; }
   .tcard.winner { border: 2px solid var(--thumbs); }
   .tcard .wbadge { position: absolute; top: -11px; left: 12px; background: var(--thumbs); color: var(--on-accent); font-size: 12px; font-weight: 700; padding: 2px 10px; border-radius: 999px; }
-  .tframe { position: relative; aspect-ratio: 16 / 9; max-width: 100%; border-radius: 6px; overflow: hidden; background: var(--sunk); }
+  .tframe { position: relative; aspect-ratio: 16 / 9; max-width: 100%; border-radius: 10px; overflow: hidden; background: var(--sunk); }
   .tgrid.small .tframe { width: 168px; }
   .tframe img { width: 100%; height: 100%; object-fit: cover; display: block; }
   .tgrid.f-protan img { filter: url(#f-protan); }
@@ -215,6 +223,7 @@
   .toast { position: fixed; left: 50%; transform: translateX(-50%); bottom: calc(24px + env(safe-area-inset-bottom, 0px)); background: var(--fg); color: var(--bg); padding: 10px 16px; border-radius: 8px; font-weight: 700; font-size: 14px; z-index: 50; max-width: calc(100% - 32px); box-shadow: 0 8px 24px rgb(0 0 0 / 0.25); }
 
   @media (max-width: 960px) {
+    .upnext { grid-template-columns: 1fr 1fr; }
     .tgrid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     .idea-input { grid-template-columns: 1fr; }
   }
@@ -290,8 +299,8 @@
     pro: { name: 'Pro', price: 40, projects: Infinity, scores: 150, files: 2000, ideaRuns: Infinity, rules: true, notion: true, drive: true, spaces: 5 }
   };
   const COST = { scores: 0.011, files: 0.004, ideaRuns: 0.045 };
-  const STATUSES = [['idea', 'Idea'], ['scripting', 'Scripting'], ['filming', 'Filming'], ['editing', 'Editing'], ['published', 'Published']];
-  const FORMATS = ['Tutorial', 'Comparison', 'Opinion', 'Tour', 'Review', 'Vlog', 'Q&A', 'Collab'];
+  const STATUSES = [['idea', 'Idea'], ['planning', 'Planning'], ['filming', 'Filming'], ['editing', 'Editing'], ['published', 'Published']];
+  const FORMATS = ['Vlog', 'GRWM', 'Day in my life', 'Routine', 'Haul', 'Try-on', 'Home tour', 'Comparison', 'Q&A', 'Tutorial'];
   const TYPES = {
     aroll: { label: 'A-roll', key: 'aroll', folder: 'A-roll' },
     broll: { label: 'B-roll', key: 'broll', folder: 'B-roll' },
@@ -303,34 +312,34 @@
   };
   const tcolor = t => `var(--t-${t})`;
 
-  const SAMPLE_NOTES = `desk setup tour?? ppl keep asking about my monitor arm
-maybe a $500 vs $5000 desk comparison
-why I stopped using notion for scripts (hot take, will get comments)
-editing speedrun, the premiere shortcuts I actually use
-Q&A for 100k?? ask community tab first
-buy new mic before filming anything else
-thumbnail idea: me looking shocked at a tiny desk
-collab with sam about burnout, she said yes in DMs`;
+  const SAMPLE_NOTES = `fall reset vlog?? deep clean + new candles + closet swap
+GRWM for a wedding, ppl keep asking about my hair
+what I eat in a day but realistic (not the 1200 cal stuff)
+cozy amazon home finds under $50
+glossier sent PR, need to post by nov 8 #ad
+buy new ring light before filming anything else
+thumbnail idea: me holding coffee in the fall leaves
+morning routine 5am vs 9am which one actually works`;
 
   const SEED = () => [
-    { id: 1, title: 'Studio lighting on a $100 budget', hook: 'You do not need a softbox. You need a shower curtain.', format: 'Tutorial', status: 'editing', notes: 'Film B-roll of the curtain trick.' },
-    { id: 2, title: 'A day in my life as a full-time creator', hook: 'Here is what 9 to 5 looks like with no boss.', format: 'Vlog', status: 'published', notes: '' },
-    { id: 3, title: 'Best free editing apps in 2026', hook: 'I tested 9 free editors so you never pay for one.', format: 'Review', status: 'scripting', notes: 'DaVinci, CapCut, Clipchamp.' },
-    { id: 4, title: 'How I plan a month of videos in one afternoon', hook: 'One afternoon. Thirty days of uploads.', format: 'Tutorial', status: 'filming', notes: '' },
-    { id: 5, title: 'Reacting to my first ever video', hook: 'This is painful. Watch anyway.', format: 'Vlog', status: 'idea', notes: '' }
+    { id: 1, title: 'My apartment tour, empty to cozy', hook: 'Six months, one small budget, zero regrets.', format: 'Home tour', status: 'editing', notes: 'Need B-roll of the reading nook at golden hour.', brand: '', due: '' },
+    { id: 2, title: 'Sunday reset routine', hook: 'The 3 hours that make my whole week easier.', format: 'Routine', status: 'published', notes: '', brand: '', due: '' },
+    { id: 3, title: 'Fall capsule wardrobe in 30 pieces', hook: 'Thirty pieces. A whole season of outfits.', format: 'Try-on', status: 'planning', notes: 'Pull pieces Thursday. Shoot in the bedroom by the window.', brand: '', due: '' },
+    { id: 4, title: 'A week of slow mornings', hook: 'I stopped checking my phone first thing. Here is what changed.', format: 'Vlog', status: 'filming', notes: 'Mention the Calm code in the first 2 minutes.', brand: 'Calm', due: '2026-11-03' },
+    { id: 5, title: 'Trying viral TikTok recipes', hook: 'Five recipes, one honest ranking.', format: 'Day in my life', status: 'idea', notes: '', brand: '', due: '' }
   ];
 
   const MOCK_FILES = [
-    { orig: 'C0012.MP4', size: '1.8 GB', len: '4:12', type: 'talking', desc: 'intro take 1', what: 'Person at desk talking to camera, first intro take', date: '2026-10-26' },
-    { orig: 'C0013.MP4', size: '2.1 GB', len: '4:51', type: 'talking', desc: 'intro take 2', what: 'Same setup, second intro take, smiling more', date: '2026-10-26' },
-    { orig: 'GX010233.MP4', size: '3.4 GB', len: '8:03', type: 'aroll', desc: 'walk to studio', what: 'Handheld walk outside, talking while walking to studio', date: '2026-10-25' },
-    { orig: 'IMG_4471.MOV', size: '410 MB', len: '0:38', type: 'broll', desc: 'cable closeup', what: 'Close-up of cable management under the desk', date: '2026-10-26' },
-    { orig: 'IMG_4472.MOV', size: '520 MB', len: '0:46', type: 'broll', desc: 'slow desk pan', what: 'Slow left to right pan across the full desk', date: '2026-10-26' },
-    { orig: 'Screen Recording 2026-10-24 at 3.02.11 PM.mov', size: '880 MB', len: '2:10', type: 'broll', desc: 'premiere timeline', what: 'Screen recording of a Premiere Pro timeline', date: '2026-10-24' },
-    { orig: 'voice_take3.wav', size: '64 MB', len: '3:30', type: 'vo', desc: 'sponsor read', what: 'Audio only. Sponsor read, third take', date: '2026-10-26' },
-    { orig: 'lofi_bed_final.mp3', size: '7 MB', len: '2:45', type: 'music', desc: 'lofi bed', what: 'Audio only. Calm lofi background track', date: '2026-10-20' },
-    { orig: 'Screenshot 2026-10-25 at 9.14.02 PM.png', size: '2 MB', len: '', type: 'screenshot', desc: 'studio analytics', what: 'YouTube Studio analytics page, views graph', date: '2026-10-25' },
-    { orig: 'DSC_0091.JPG', size: '12 MB', len: '', type: 'photo', desc: 'monitor arm', what: 'Product photo of the monitor arm on white', date: '2026-10-26' }
+    { orig: 'IMG_2201.MOV', size: '1.2 GB', len: '3:40', type: 'talking', desc: 'couch intro', what: 'Talking to camera on the couch, intro for the vlog', date: '2026-10-26' },
+    { orig: 'IMG_2202.MOV', size: '980 MB', len: '2:58', type: 'talking', desc: 'grwm mirror', what: 'Mirror GRWM, doing makeup and chatting', date: '2026-10-26' },
+    { orig: 'IMG_2205.MOV', size: '340 MB', len: '0:22', type: 'broll', desc: 'iced coffee pour', what: 'Slow motion oat milk pour into iced coffee', date: '2026-10-26' },
+    { orig: 'IMG_2207.MOV', size: '410 MB', len: '0:31', type: 'broll', desc: 'lighting candle', what: 'Close-up of lighting a candle on the coffee table', date: '2026-10-26' },
+    { orig: 'IMG_2210.MOV', size: '2.4 GB', len: '6:15', type: 'aroll', desc: 'closet swap', what: 'Swapping summer clothes for fall, talking while folding', date: '2026-10-27' },
+    { orig: 'IMG_2214.MOV', size: '520 MB', len: '0:40', type: 'broll', desc: 'park leaves walk', what: 'Handheld walk through fall leaves in the park', date: '2026-10-27' },
+    { orig: 'voiceover_outro.m4a', size: '18 MB', len: '1:12', type: 'vo', desc: 'outro', what: 'Audio only. Outro voiceover with the Glossier mention', date: '2026-10-27' },
+    { orig: 'epidemic_cozy_acoustic.mp3', size: '8 MB', len: '3:05', type: 'music', desc: 'cozy acoustic', what: 'Audio only. Soft acoustic background track', date: '2026-10-20' },
+    { orig: 'IMG_2219.HEIC', size: '3 MB', len: '', type: 'photo', desc: 'outfit flat lay', what: 'Flat lay of the fall outfit, good for an Instagram post', date: '2026-10-27' },
+    { orig: 'Screenshot 2026-10-25 at 10.02.11 AM.png', size: '1 MB', len: '', type: 'screenshot', desc: 'glossier brief', what: 'Glossier brand brief with talking points and posting date', date: '2026-10-25' }
   ];
 
   const fresh = () => ({
@@ -338,13 +347,18 @@ collab with sam about burnout, she said yes in DMs`;
     usage: { scores: 0, files: 0, ideaRuns: 0 },
     projects: SEED(), nextId: 6, freshIds: [],
     ideas: { text: SAMPLE_NOTES, busy: false, result: null, pending: [] },
-    thumbs: { title: 'I tried a $5,000 desk setup for 30 days', items: [], view: 'normal', overlay: true, busy: false, nextId: 1 },
-    files: { stage: 'empty', rows: [], project: 'desk-setup', rule: '{date}_{project}_{type}_{desc}', scanned: 0, tree: null }
+    thumbs: { title: 'My slow fall morning routine (cozy and realistic)', items: [], view: 'normal', overlay: true, busy: false, nextId: 1 },
+    files: { stage: 'empty', rows: [], project: 'fall-reset-vlog', rule: '{date}_{project}_{type}_{desc}', scanned: 0, tree: null }
   });
   let state = fresh();
   let modalOpen = null; // {kind, ...}
 
   const P = () => PLANS[state.plan];
+  const TODAY = new Date('2026-10-28T12:00:00');
+  const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  const dueLabel = iso => { if (!iso) return ''; const [y, m, d] = iso.split('-').map(Number); return MONTHS[m - 1] + ' ' + d; };
+  const daysLeft = iso => iso ? Math.round((new Date(iso + 'T12:00:00') - TODAY) / 86400000) : null;
+  const dealChip = p => { if (!p.brand) return ''; const dl = daysLeft(p.due); return `<span class="chip deal ${dl != null && dl <= 7 ? 'soon' : ''}">${esc(p.brand)}${p.due ? ' \u00b7 post by ' + dueLabel(p.due) : ''}</span>`; };
   const left = k => Math.max(0, P()[k] - state.usage[k]);
 
   /* ---------- toast ---------- */
@@ -392,17 +406,19 @@ collab with sam about burnout, she said yes in DMs`;
   /* ---------- HOME ---------- */
   function vHome() {
     const by = s => state.projects.filter(p => p.status === s);
-    const next = by('filming')[0] || by('scripting')[0] || by('idea')[0];
+    const next = by('filming')[0] || by('planning')[0] || by('idea')[0];
     const scored = state.thumbs.items.filter(t => t.score).length;
+    const deals = state.projects.filter(p => p.brand && p.status !== 'published').sort((a, b) => (a.due || '9') < (b.due || '9') ? -1 : 1);
     return `
-      <div class="phead"><h1>What do you want to do?</h1><p>Pick one. Each tool does one job and tells you the next step.</p></div>
+      <div class="phead"><h1>What are we prepping today?</h1><p>Pick one. Each tool does one job and tells you the next step.</p></div>
       <div class="tiles">
-        <a class="tile ideas" href="#ideas"><h2>Sort my ideas</h2><p>Paste messy notes. Get video cards on a board.</p><span class="stat">${state.projects.length} projects. ${by('filming').length} filming now.</span><span class="go">Open Ideas</span></a>
-        <a class="tile thumbs" href="#thumbnails"><h2>Test thumbnails</h2><p>Upload 2 to 6. See which one wins and why.</p><span class="stat">${scored ? scored + ' scored so far.' : 'No tests yet.'} ${left('scores')} AI scores left.</span><span class="go">Open Thumbnails</span></a>
-        <a class="tile files" href="#files"><h2>Clean up footage</h2><p>Point at a folder. Get clean names and sorted folders.</p><span class="stat">${left('files')} files left this month.</span><span class="go">Open Files</span></a>
+        <a class="tile ideas" href="#ideas"><h2>Plan my content</h2><p>Brain dump your ideas. Get video cards, with brand deals flagged.</p><span class="stat">${state.projects.length} videos planned. ${by('filming').length} filming now.</span><span class="go">Open Ideas</span></a>
+        <a class="tile thumbs" href="#thumbnails"><h2>Test thumbnails</h2><p>Upload 2 to 6. See which one people will actually click.</p><span class="stat">${scored ? scored + ' scored so far.' : 'No tests yet.'} ${left('scores')} AI scores left.</span><span class="go">Open Thumbnails</span></a>
+        <a class="tile files" href="#files"><h2>Clean up my footage</h2><p>All those IMG_2201 clips, named and sorted into folders.</p><span class="stat">${left('files')} files left this month.</span><span class="go">Open Files</span></a>
       </div>
       <div class="upnext">
-        <div class="panel ideas"><span class="bigq">Up next on your board</span>${next ? `<h2 style="font-size:20px">${esc(next.title)}</h2><p class="muted">${esc(next.hook)}</p><div class="row"><span class="chip" style="--chip:var(--ideas)">${STATUSES.find(s => s[0] === next.status)[1]}</span><span class="chip">${esc(next.format)}</span></div>` : '<p class="muted">Nothing in progress. Add an idea to get started.</p>'}</div>
+        <div class="panel ideas"><span class="bigq">Up next</span>${next ? `<h2 style="font-size:20px">${esc(next.title)}</h2><p class="muted">${esc(next.hook)}</p><div class="row"><span class="chip" style="--chip:var(--ideas)">${STATUSES.find(s => s[0] === next.status)[1]}</span><span class="chip">${esc(next.format)}</span>${dealChip(next)}</div>` : '<p class="muted">Nothing in progress. Add an idea to get started.</p>'}</div>
+        <div class="panel"><span class="bigq">Brand deals due</span>${deals.length ? `<ul class="deals">${deals.map(p => { const dl = daysLeft(p.due); return `<li><span><b>${esc(p.brand)}</b> ${esc(p.title)}</span><span class="chip deal ${dl != null && dl <= 7 ? 'soon' : ''}">${p.due ? (dl < 0 ? 'overdue' : dl === 0 ? 'today' : dl + ' days') : 'no date'}</span></li>`; }).join('')}</ul>` : '<p class="muted">No brand deals in progress.</p>'}</div>
         <div class="panel money"><span class="bigq">This month on ${P().name}</span>${usageBar('scores', 'AI thumbnail scores')}${usageBar('files', 'Files sorted')}${usageBar('ideaRuns', 'Idea sorting runs')}</div>
       </div>`;
   }
@@ -413,7 +429,7 @@ collab with sam about burnout, she said yes in DMs`;
     const step = I.result ? 2 : I.busy ? 1 : 0;
     const cap = P().projects;
     return `
-      <div class="phead ideas"><h1>Ideas</h1><p>Dump everything. Spelling and order do not matter.</p>${steps(['Paste notes', 'Sort with AI', 'Drag cards'], step)}</div>
+      <div class="phead ideas"><h1>Ideas</h1><p>Dump everything from your Notes app. Spelling and order do not matter. Brand deals get pulled out with their post-by dates.</p>${steps(['Paste notes', 'Sort with AI', 'Drag cards'], step)}</div>
       <div class="idea-input ideas">
         <div class="panel">
           <label class="fld" for="idea-text">Brain dump</label>
@@ -430,7 +446,7 @@ collab with sam about burnout, she said yes in DMs`;
           const cards = state.projects.filter(p => p.status === k);
           return `<section class="col" data-col="${k}" aria-label="${label}">
             <div class="col-head"><span>${label}</span><span class="n">${cards.length}</span></div>
-            ${cards.map(p => `<button type="button" class="card ${state.freshIds.includes(p.id) ? 'fresh' : ''}" draggable="true" data-card="${p.id}" data-act="open-card"><b>${esc(p.title)}</b><span class="hook">${esc(p.hook)}</span><span class="chip">${esc(p.format)}</span></button>`).join('')}
+            ${cards.map(p => `<button type="button" class="card ${state.freshIds.includes(p.id) ? 'fresh' : ''}" draggable="true" data-card="${p.id}" data-act="open-card"><b>${esc(p.title)}</b><span class="hook">${esc(p.hook)}</span><span class="tags"><span class="chip">${esc(p.format)}</span>${dealChip(p)}</span></button>`).join('')}
             ${k === 'idea' ? '<button type="button" class="addcard" data-act="add-card">+ Add a card</button>' : ''}
           </section>`;
         }).join('')}
@@ -440,41 +456,56 @@ collab with sam about burnout, she said yes in DMs`;
   function ideaResult() {
     const r = state.ideas.result;
     if (state.ideas.busy) return `<h3>Sorting</h3><p class="muted">Grouping your notes and writing a title and hook for each video.</p>`;
-    if (!r) return `<h3>What you will get</h3><ul><li>A card for each video idea, with a working title and hook</li><li>To-dos pulled out so they stop cluttering ideas</li><li>Thumbnail notes attached to the right card</li></ul><p class="empty">Nothing sorted yet. Hit the button.</p>`;
+    if (!r) return `<h3>What you will get</h3><ul><li>A card for each video idea, with a working title and hook</li><li>Brand deals flagged, with the post-by date</li><li>To-dos pulled out so they stop cluttering ideas</li><li>Thumbnail notes attached to the right card</li></ul><p class="empty">Nothing sorted yet. Hit the button.</p>`;
     return `<h3>Sorted ${r.total} notes</h3>
-      <div><span class="chip" style="--chip:var(--ideas)">${r.added.length} new cards</span> <span class="chip">${r.todos.length} to-dos</span> <span class="chip">${r.thumbs.length} thumbnail notes</span></div>
+      <div><span class="chip" style="--chip:var(--ideas)">${r.added.length} new cards</span> ${r.deals ? `<span class="chip deal">${r.deals} brand deal${r.deals > 1 ? 's' : ''}</span> ` : ''}<span class="chip">${r.todos.length} to-dos</span> <span class="chip">${r.thumbs.length} thumbnail notes</span></div>
       ${r.todos.length ? `<div><b>To-dos</b><ul>${r.todos.map(t => `<li>${esc(t)}</li>`).join('')}</ul></div>` : ''}
       ${r.thumbs.length ? `<div><b>Thumbnail notes</b><ul>${r.thumbs.map(t => `<li>${esc(t.text)}${t.to ? ` <span class="muted">added to "${esc(t.to)}"</span>` : ''}</li>`).join('')}</ul></div>` : ''}
       ${state.ideas.pending.length ? `<div class="panel" style="border-color:var(--warn);padding:12px"><b>${state.ideas.pending.length} idea${state.ideas.pending.length > 1 ? 's' : ''} did not fit.</b><span class="muted">Free holds 10 projects. Nothing is lost, they are waiting here.</span><div class="row"><button class="btn primary money" data-act="upgrade-to" data-plan="creator">Get unlimited projects</button></div></div>` : ''}`;
   }
 
   const KNOWN = [
-    [/desk setup tour/i, { title: 'My desk setup tour (and the monitor arm everyone asks about)', hook: 'You asked about the arm 200 times. Here is the whole desk.', format: 'Tour' }],
-    [/\$500 vs \$5000/i, { title: '$500 desk vs $5,000 desk', hook: 'One of these costs 10 times more. Can you tell which?', format: 'Comparison' }],
-    [/notion/i, { title: 'Why I stopped writing scripts in Notion', hook: 'Three years in Notion. I quit in one day.', format: 'Opinion' }],
-    [/speedrun/i, { title: 'Editing speedrun with the Premiere shortcuts I actually use', hook: 'Watch me cut a 10 minute video in 10 minutes.', format: 'Tutorial' }],
-    [/q&a/i, { title: '100K Q&A', hook: 'You asked. I answered all of it. Even that one.', format: 'Q&A' }],
-    [/collab/i, { title: 'Creator burnout, a talk with Sam', hook: 'Two creators. One honest talk about burning out.', format: 'Collab' }]
+    [/fall reset/i, { title: 'Fall reset vlog: deep clean, candles and a closet swap', hook: 'Everything I do when the season changes, in one cozy day.', format: 'Vlog' }],
+    [/grwm.*wedding|wedding.*grwm/i, { title: 'GRWM for a wedding (the hair everyone asks about)', hook: 'You asked about the hair. Every step, start to finish.', format: 'GRWM' }],
+    [/what i eat/i, { title: 'What I eat in a day, the realistic version', hook: 'No 1,200 calorie stuff. Just what I actually eat.', format: 'Day in my life' }],
+    [/amazon home/i, { title: 'Cozy Amazon home finds under $50', hook: 'Twelve things that make my place feel expensive. All under $50.', format: 'Haul' }],
+    [/glossier/i, { title: 'Glossier PR unboxing and first impressions', hook: 'Glossier sent me a box. Honest thoughts, no script.', format: 'Haul', brand: 'Glossier', due: '2026-11-08' }],
+    [/5am vs 9am/i, { title: '5am vs 9am morning routine: which one actually works', hook: 'I tried both for a week. One of them changed my whole day.', format: 'Comparison' }]
   ];
-  const HOOKS = { Tutorial: 'Here is exactly how I do it, step by step.', Comparison: 'I tested both so you do not have to.', Opinion: 'This might be unpopular, but hear me out.', Tour: 'Everything I use, and what I would skip.', Review: 'The honest version, after real use.', Vlog: 'Come along for the whole thing.', 'Q&A': 'Your questions, my honest answers.', Collab: 'Two creators, one topic, no script.' };
+  const HOOKS = { Vlog: 'Come along for the whole thing.', GRWM: 'Get ready with me and catch up.', 'Day in my life': 'A real day, nothing staged.', Routine: 'The routine that keeps me sane.', Haul: 'Everything I bought, and what I would return.', 'Try-on': 'Every piece, styled three ways.', 'Home tour': 'Come see the whole place.', Comparison: 'I tried both so you do not have to.', 'Q&A': 'Your questions, my honest answers.', Tutorial: 'Step by step, nothing skipped.' };
   function guessFormat(s) {
+    if (/grwm|get ready/i.test(s)) return 'GRWM';
     if (/\bvs\.?\b|versus|compar/i.test(s)) return 'Comparison';
-    if (/how to|tutorial|guide|shortcut|workflow|tips/i.test(s)) return 'Tutorial';
-    if (/why|hot take|unpopular|opinion|stopped/i.test(s)) return 'Opinion';
-    if (/tour|setup/i.test(s)) return 'Tour';
-    if (/review|tested|worth it/i.test(s)) return 'Review';
+    if (/what i eat|day in (my|the) life|diml/i.test(s)) return 'Day in my life';
+    if (/routine|reset/i.test(s)) return 'Routine';
+    if (/haul|finds|favorites|faves|unbox/i.test(s)) return 'Haul';
+    if (/try.?on|outfit|closet|wardrobe|lookbook/i.test(s)) return 'Try-on';
+    if (/home tour|apartment|room tour|decor/i.test(s)) return 'Home tour';
     if (/q ?& ?a|questions/i.test(s)) return 'Q&A';
-    if (/collab|with @|feat/i.test(s)) return 'Collab';
+    if (/how to|tutorial|tips/i.test(s)) return 'Tutorial';
     return 'Vlog';
+  }
+  const BRAND_RE = /#ad\b|#sponsored|sponsor|\bpr\b|gifted|brand deal|paid partnership/i;
+  function findDue(s) {
+    const m = s.match(/\b(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)[a-z]*\.?\s+(\d{1,2})\b/i);
+    if (!m) return '';
+    const mo = MONTHS.findIndex(x => x.toLowerCase() === m[1].slice(0, 3).toLowerCase()) + 1;
+    const yr = mo < TODAY.getMonth() + 1 ? 2027 : 2026;
+    return `${yr}-${String(mo).padStart(2, '0')}-${String(+m[2]).padStart(2, '0')}`;
   }
   function fakeOrganize(text) {
     const lines = text.split(/\n+/).map(l => l.replace(/^[\s\-*•\d.)]+/, '').trim()).filter(Boolean);
     const ideas = [], todos = [], thumbs = [];
     for (const l of lines) {
-      if (/^(buy|need to|todo|to do|email|call|order|book|remind)\b/i.test(l) || /\bbefore filming\b/i.test(l)) { todos.push(l.charAt(0).toUpperCase() + l.slice(1)); continue; }
+      if (!BRAND_RE.test(l) && (/^(buy|need to|todo|to do|email|call|order|book|remind)\b/i.test(l) || /\bbefore filming\b/i.test(l))) { todos.push(l.charAt(0).toUpperCase() + l.slice(1)); continue; }
       if (/thumbnail/i.test(l)) { thumbs.push(l.replace(/^thumbnail( idea)?:?\s*/i, '')); continue; }
       const k = KNOWN.find(([re]) => re.test(l));
       if (k) { ideas.push({ ...k[1], src: l }); continue; }
+      if (BRAND_RE.test(l)) {
+        const brand = (l.match(/^([A-Za-z][\w&']+)/) || [, 'Brand'])[1];
+        const nice = brand.charAt(0).toUpperCase() + brand.slice(1);
+        ideas.push({ title: `${nice} sponsored video`, hook: HOOKS[guessFormat(l)], format: guessFormat(l), brand: nice, due: findDue(l), src: l }); continue;
+      }
       let t = l.replace(/\?+|!+/g, '').replace(/\b(maybe|ppl|idk|lol)\b/gi, '').replace(/\s+/g, ' ').trim();
       t = t.charAt(0).toUpperCase() + t.slice(1);
       if (t.length > 64) t = t.slice(0, 61).replace(/\s\S*$/, '') + '...';
@@ -494,7 +525,7 @@ collab with sam about burnout, she said yes in DMs`;
     const room = P().projects - state.projects.length;
     const fit = out.ideas.slice(0, Math.max(0, room));
     I.pending = out.ideas.slice(fit.length);
-    const added = fit.map(x => ({ id: state.nextId++, title: x.title, hook: x.hook, format: x.format, status: 'idea', notes: '' }));
+    const added = fit.map(x => ({ id: state.nextId++, title: x.title, hook: x.hook, format: x.format, status: 'idea', notes: '', brand: x.brand || '', due: x.due || '' }));
     state.projects.push(...added);
     const thumbs = out.thumbs.map(text => {
       const words = text.toLowerCase().match(/[a-z]{4,}/g) || [];
@@ -503,7 +534,7 @@ collab with sam about burnout, she said yes in DMs`;
       return { text, to: target ? target.title : null };
     });
     state.freshIds = added.map(a => a.id);
-    I.result = { total: out.total, added, todos: out.todos, thumbs };
+    I.result = { total: out.total, added, todos: out.todos, thumbs, deals: out.ideas.filter(x => x.brand).length };
     I.busy = false; render();
     toast(`Added ${added.length} card${added.length === 1 ? '' : 's'} to Idea.`);
     setTimeout(() => { state.freshIds = []; }, 2500);
@@ -512,7 +543,7 @@ collab with sam about burnout, she said yes in DMs`;
     const I = state.ideas; if (!I.pending.length) return;
     const room = P().projects - state.projects.length;
     const fit = I.pending.splice(0, Math.max(0, room));
-    const added = fit.map(x => ({ id: state.nextId++, title: x.title, hook: x.hook, format: x.format, status: 'idea', notes: '' }));
+    const added = fit.map(x => ({ id: state.nextId++, title: x.title, hook: x.hook, format: x.format, status: 'idea', notes: '', brand: x.brand || '', due: x.due || '' }));
     state.projects.push(...added); state.freshIds = added.map(a => a.id);
     if (added.length) toast(`Added the ${added.length} waiting idea${added.length > 1 ? 's' : ''}.`);
     setTimeout(() => { state.freshIds = []; }, 2500);
@@ -549,7 +580,7 @@ collab with sam about burnout, she said yes in DMs`;
     const best = anyScore ? T.items.filter(t => t.score).reduce((a, b) => (b.score.total > a.score.total ? b : a)) : null;
     const viewCls = T.view === 'small' ? 'small' : T.view === 'normal' ? '' : 'f-' + T.view;
     return `
-      <div class="phead thumbs"><h1>Thumbnails</h1><p>Accessibility checks are free and instant. AI scoring uses one credit per thumbnail.</p>${steps(['Add 2 to 6 thumbnails', 'Check accessibility', 'Score with AI'], step)}</div>
+      <div class="phead thumbs"><h1>Thumbnails</h1><p>Aesthetic is great. It still has to read on a phone in a busy feed. Accessibility checks are free. AI scoring uses one credit per thumbnail.</p>${steps(['Add 2 to 6 thumbnails', 'Check accessibility', 'Score with AI'], step)}</div>
       <div class="panel thumbs">
         <div class="row">
           <label class="fld grow" for="thumb-title">Video title<input type="text" id="thumb-title" value="${esc(T.title)}"></label>
@@ -587,35 +618,39 @@ collab with sam about burnout, she said yes in DMs`;
   function drawSample(kind) {
     const c = document.createElement('canvas'); c.width = 640; c.height = 360; const x = c.getContext('2d');
     if (kind === 'a') {
-      x.fillStyle = '#ffd23f'; x.fillRect(0, 0, 640, 360);
-      x.fillStyle = '#e0a878'; x.beginPath(); x.ellipse(180, 205, 115, 135, 0, 0, Math.PI * 2); x.fill();
-      x.fillStyle = '#3b2416'; x.beginPath(); x.ellipse(180, 105, 120, 55, 0, Math.PI, 0); x.fill();
-      x.fillStyle = '#fff'; [[140, 185], [220, 185]].forEach(([a, b]) => { x.beginPath(); x.arc(a, b, 24, 0, 7); x.fill(); });
-      x.fillStyle = '#111'; [[140, 188], [220, 188]].forEach(([a, b]) => { x.beginPath(); x.arc(a, b, 10, 0, 7); x.fill(); });
-      x.strokeStyle = '#3b2416'; x.lineWidth = 8; x.beginPath(); x.moveTo(112, 140); x.lineTo(162, 130); x.moveTo(198, 130); x.lineTo(248, 140); x.stroke();
-      x.fillStyle = '#5a1a12'; x.beginPath(); x.ellipse(180, 275, 28, 38, 0, 0, 7); x.fill();
-      x.font = '900 86px Impact, "Arial Black", sans-serif'; x.textAlign = 'left'; x.lineJoin = 'round';
-      x.lineWidth = 10; x.strokeStyle = '#fff'; x.fillStyle = '#111';
-      [['$5,000', 330, 150], ['DESK?', 330, 245]].forEach(([s, a, b]) => { x.strokeText(s, a, b); x.fillText(s, a, b); });
+      const g = x.createLinearGradient(0, 0, 640, 360); g.addColorStop(0, '#f28c38'); g.addColorStop(1, '#b8461b'); x.fillStyle = g; x.fillRect(0, 0, 640, 360);
+      x.fillStyle = '#5b2a17'; x.beginPath(); x.ellipse(180, 175, 130, 150, 0, 0, 7); x.fill();
+      x.fillStyle = '#f1c7a1'; x.beginPath(); x.ellipse(180, 200, 100, 120, 0, 0, 7); x.fill();
+      x.fillStyle = '#2b1810'; [[145, 185], [215, 185]].forEach(([a, b]) => { x.beginPath(); x.arc(a, b, 9, 0, 7); x.fill(); });
+      x.strokeStyle = '#8c2f2f'; x.lineWidth = 7; x.lineCap = 'round'; x.beginPath(); x.arc(180, 235, 34, 0.15 * Math.PI, 0.85 * Math.PI); x.stroke();
+      x.fillStyle = '#f7efe6'; x.fillRect(240, 250, 70, 85); x.fillStyle = '#7a4a2c'; x.fillRect(248, 258, 54, 22);
+      x.strokeStyle = '#f7efe6'; x.lineWidth = 10; x.beginPath(); x.arc(312, 292, 18, -Math.PI / 2, Math.PI / 2); x.stroke();
+      x.font = '800 80px "Arial Black", Impact, sans-serif'; x.textAlign = 'left'; x.lineJoin = 'round';
+      x.lineWidth = 12; x.strokeStyle = '#3a1608'; x.fillStyle = '#fff6ea';
+      [['5AM', 350, 150], ['RESET', 335, 240]].forEach(([s, a, b]) => { x.strokeText(s, a, b); x.fillText(s, a, b); });
     } else if (kind === 'b') {
-      x.fillStyle = '#1d2b53'; x.fillRect(0, 0, 640, 360);
-      x.fillStyle = '#4a3426'; x.fillRect(0, 250, 640, 26);
-      x.fillStyle = '#2a2a2e'; x.fillRect(215, 110, 210, 125); x.fillStyle = '#2e4a8a'; x.fillRect(225, 120, 190, 105);
-      x.fillStyle = '#2a2a2e'; x.fillRect(312, 235, 16, 15);
-      x.font = 'bold 34px Arial, sans-serif'; x.textAlign = 'right'; x.fillStyle = '#c62828';
-      x.fillText('My Desk Setup 2026', 625, 338);
+      x.fillStyle = '#ecdfcf'; x.fillRect(0, 0, 640, 360);
+      x.fillStyle = '#f0d3cc'; x.beginPath(); x.ellipse(250, 170, 150, 110, 0, 0, 7); x.fill();
+      x.fillStyle = '#e6d2bd'; x.fillRect(200, 210, 130, 60); x.fillStyle = '#efe5d8'; x.beginPath(); x.ellipse(265, 210, 65, 14, 0, 0, 7); x.fill();
+      x.font = 'italic 30px Georgia, "Times New Roman", serif'; x.textAlign = 'right'; x.fillStyle = '#c99a8e';
+      x.fillText('my slow morning routine', 628, 336);
     } else {
-      const g = x.createLinearGradient(0, 0, 640, 360); g.addColorStop(0, '#6d5a8c'); g.addColorStop(1, '#8c6d5a'); x.fillStyle = g; x.fillRect(0, 0, 640, 360);
-      let seed = 7; const r = () => (seed = (seed * 9301 + 49297) % 233280) / 233280;
-      for (let i = 0; i < 120; i++) { x.fillStyle = `hsl(${Math.floor(r() * 360)} ${40 + r() * 40}% ${35 + r() * 35}%)`; x.fillRect(r() * 640, r() * 360, 8 + r() * 50, 8 + r() * 50); }
-      x.font = 'bold 20px Arial, sans-serif'; x.fillStyle = '#f2f2f2'; x.textAlign = 'left'; x.fillText('30 DAYS WITH A $5K DESK', 18, 34);
+      x.fillStyle = '#f4efe9'; x.fillRect(0, 0, 640, 360);
+      let seed = 11; const r = () => (seed = (seed * 9301 + 49297) % 233280) / 233280;
+      const cols = ['#e7a1a8', '#a8c6a0', '#f2c36b', '#9fb4e0', '#d9a7d9', '#c28f6b', '#e86d5a', '#6fae8f'];
+      for (let i = 0; i < 70; i++) {
+        x.fillStyle = cols[Math.floor(r() * cols.length)]; const w = 16 + r() * 60, h = 16 + r() * 60, X = r() * 640, Y = r() * 360;
+        if (r() > 0.5) { x.beginPath(); x.ellipse(X, Y, w / 2, h / 2, 0, 0, 7); x.fill(); } else { x.fillRect(X, Y, w, h); }
+        x.fillStyle = 'rgba(255,255,255,0.7)'; x.fillRect(X + 4, Y + 4, Math.max(4, w / 4), 3);
+      }
+      x.font = 'bold 20px Arial, sans-serif'; x.fillStyle = '#ffffff'; x.textAlign = 'left'; x.fillText('FALL HAUL', 18, 34);
     }
     return c.toDataURL('image/jpeg', 0.88);
   }
   const SAMPLE_SCORES = {
-    a: { clarity: 9, emotion: 9, contrast: 9, text: 8, curiosity: 8, why: 'Big shocked face and a two word question. Easy to read at phone size, and the yellow pops in a dark feed. The price makes people need the answer.' },
-    b: { clarity: 6, emotion: 3, contrast: 4, text: 4, curiosity: 5, why: 'The title sits right where YouTube puts the timestamp, so it gets covered. Red on navy is hard to read and almost vanishes for red-green colorblind viewers. No face, so it feels flat.' },
-    c: { clarity: 4, emotion: 4, contrast: 6, text: 3, curiosity: 7, why: 'The $5K hook is good but buried. At phone size the clutter turns to noise and the small text cannot be read. Pick one subject and make it big.' }
+    a: { clarity: 9, emotion: 9, contrast: 9, text: 8, curiosity: 8, why: 'Your face and the coffee make it feel personal, and the warm colors fit a fall routine. "5AM RESET" is bold enough to read on a phone. It makes a clear promise, so it gets the click.' },
+    b: { clarity: 5, emotion: 4, contrast: 3, text: 3, curiosity: 5, why: 'Pretty, but it disappears in a feed. Thin script on beige is hard to read, and it sits right under the timestamp. Aesthetic thumbnails still need one bold thing. Add your face or make the text big.' },
+    c: { clarity: 4, emotion: 4, contrast: 6, text: 3, curiosity: 7, why: 'A flat lay shows off the haul, but at phone size it turns into confetti. Pick three hero products, make them big, and put your face next to them.' }
   };
 
   function analyze(src) {
@@ -643,10 +678,13 @@ collab with sam about burnout, she said yes in DMs`;
           }
           if (xx >= W * 0.76 && y >= H * 0.8) { zN++; if (e) zEdges++; }
         }
-        const density = cells.filter(c => c >= 4).length / cells.length, zDensity = zN ? zEdges / zN : 0;
+        const zL = []; for (let y = Math.ceil(H * 0.8); y < H; y++) for (let xx = Math.ceil(W * 0.76); xx < W; xx++) zL.push(L[y * W + xx]);
+        const zMed = [...zL].sort((m, n) => m - n)[zL.length >> 1];
+        const zOff = zL.filter(v => Math.abs(v - zMed) > 0.06).length / zL.length;
+        const density = cells.filter(c => c >= 4).length / cells.length, zDensity = Math.max(zN ? zEdges / zN : 0, zOff);
         const cbRatio = dn ? dp / dn : 1;
         const checks = [
-          sd < 0.14 ? { ok: false, msg: 'Low contrast. Looks muddy in a busy feed.' } : { ok: true, msg: 'Strong contrast' },
+          sd < 0.12 ? { ok: false, msg: 'Low contrast. Looks muddy in a busy feed.' } : { ok: true, msg: 'Strong contrast' },
           zDensity > 0.05 ? { ok: false, msg: 'Something sits under the timestamp (bottom right).' } : { ok: true, msg: 'Timestamp corner is clear' },
           density > 0.7 ? { ok: false, msg: 'Busy. Hard to read at phone size.' } : { ok: true, msg: 'Clean enough to read small' },
           cbRatio < 0.83 ? { ok: false, msg: 'Relies on red and green. Check the Protanopia view.' } : { ok: true, msg: 'Holds up for colorblind viewers' }
@@ -687,7 +725,7 @@ collab with sam about burnout, she said yes in DMs`;
     const notes = [];
     if (m.zDensity > 0.05) notes.push('Something important sits where the timestamp goes, so part of it gets covered.');
     if (m.density > 0.7) notes.push('A lot of detail. At phone size it will read as noise.');
-    if (m.sd < 0.14) notes.push('Colors are close together, so it may blend into the feed.');
+    if (m.sd < 0.12) notes.push('Colors are close together, so it may blend into the feed.');
     if (m.cbRatio < 0.83) notes.push('Red and green carry a lot of the image, which is lost for some colorblind viewers.');
     if (!notes.length) notes.push('Clean layout with good contrast. It should read well at small sizes.');
     s.why = notes.join(' ') + ' (Demo score. The real app asks Claude.)';
@@ -710,9 +748,9 @@ collab with sam about burnout, she said yes in DMs`;
     const step = F.stage === 'empty' ? 0 : F.stage === 'found' || F.stage === 'scanning' ? 1 : F.stage === 'review' ? 2 : 3;
     const n = F.rows.length;
     return `
-      <div class="phead files"><h1>Files</h1><p>Your videos never leave your computer. Only a few tiny frames from each one are sent to the AI.</p>${steps(['Choose a folder', 'Scan', 'Check names', 'Rename and sort'], step)}</div>
-      ${F.stage === 'empty' ? `<div class="panel files"><div class="dropzone"><b>Choose your footage folder</b><span>Chrome asks for permission once. In this demo we load a sample folder instead.</span><button class="btn primary" data-act="load-folder">Choose folder</button></div><p class="hint">Works in desktop Chrome, Edge, Brave and Arc. On a phone this screen asks you to use your computer.</p></div>` : ''}
-      ${F.stage === 'found' ? `<div class="panel files"><h2 style="font-size:20px">Found ${n} files in <span class="mono">Desktop/desk-setup-raw</span></h2>
+      <div class="phead files"><h1>Files</h1><p>Turn a camera roll of IMG_2201 clips into named, sorted folders. Your videos never leave your computer. Only a few tiny frames from each one go to the AI.</p>${steps(['Choose a folder', 'Scan', 'Check names', 'Rename and sort'], step)}</div>
+      ${F.stage === 'empty' ? `<div class="panel files"><div class="dropzone"><b>Choose your footage folder</b><span>Chrome asks for permission once. In this demo we load a sample folder instead.</span><button class="btn primary" data-act="load-folder">Choose folder</button></div><p class="hint">Filmed on your phone? AirDrop or sync the clips to your computer first. Works in desktop Chrome, Edge, Brave and Arc.</p></div>` : ''}
+      ${F.stage === 'found' ? `<div class="panel files"><h2 style="font-size:20px">Found ${n} files in <span class="mono">Desktop/fall-reset-raw</span></h2>
         <p class="hint">Scanning uses <b>${n}</b> of your <b>${left('files')}</b> files left this month. You can still change every name before anything moves.</p>
         <div class="row"><button class="btn primary" data-act="scan">Scan ${n} files</button><button class="btn" data-act="files-reset">Pick another folder</button></div></div>` : ''}
       ${F.stage !== 'empty' && F.stage !== 'found' ? ruleBox() : ''}
@@ -772,9 +810,9 @@ collab with sam about burnout, she said yes in DMs`;
   function vPlan() {
     const u = state.usage; const ai = u.scores * COST.scores + u.files * COST.files + u.ideaRuns * COST.ideaRuns;
     const feats = {
-      free: ['Idea board up to 10 projects', '10 idea sorting runs', 'Unlimited accessibility checks', '3 AI thumbnail scores', '25 files sorted'],
-      creator: ['Unlimited projects and runs', '50 AI thumbnail scores', '500 files sorted', 'Custom naming rules', 'Send winners to Notion'],
-      pro: ['Everything in Creator', '150 AI thumbnail scores', '2,000 files sorted', 'Google Drive folders', 'Up to 5 channels', 'Priority processing']
+      free: ['Idea board up to 10 videos', '10 idea sorting runs', 'Unlimited accessibility checks', '3 AI thumbnail scores', '25 files sorted'],
+      creator: ['Unlimited videos and brand deals', '50 AI thumbnail scores', '500 files sorted', 'Custom naming rules', 'Send winners to Notion'],
+      pro: ['Everything in Creator', '150 AI thumbnail scores', '2,000 files sorted', 'Google Drive folders', 'Up to 5 channels, like a second vlog channel', 'Priority processing']
     };
     return `
       <div class="phead money"><h1>Plan</h1><p>You are on <b>${P().name}</b>. In the real app, buttons go to Stripe and cancellation lives in the Stripe portal.</p></div>
@@ -821,6 +859,8 @@ collab with sam about burnout, she said yes in DMs`;
         <label class="fld" for="d-hook">Hook (first 5 seconds)<textarea id="d-hook" rows="2">${esc(p.hook)}</textarea></label>
         <div class="row"><label class="fld grow" for="d-format">Format<select id="d-format">${FORMATS.map(f => `<option ${f === p.format ? 'selected' : ''}>${f}</option>`).join('')}</select></label>
         <label class="fld grow" for="d-status">Status<select id="d-status">${STATUSES.map(([k, l]) => `<option value="${k}" ${k === p.status ? 'selected' : ''}>${l}</option>`).join('')}</select></label></div>
+        <div class="row"><label class="fld grow" for="d-brand">Brand deal (optional)<input type="text" id="d-brand" value="${esc(p.brand)}" placeholder="Brand name"></label>
+        <label class="fld grow" for="d-due">Post by<input type="date" id="d-due" value="${esc(p.due)}"></label></div>
         <label class="fld" for="d-notes">Notes<textarea id="d-notes" rows="5">${esc(p.notes)}</textarea></label>
         <div class="row"><button type="button" class="btn" data-act="del-card">Delete</button><span class="grow"></span><button type="button" class="btn" data-act="close">Cancel</button><button type="submit" class="btn primary">Save</button></div>
       </form></div>`;
@@ -839,12 +879,12 @@ collab with sam about burnout, she said yes in DMs`;
     'open-card': el => { modalOpen = { kind: 'card', id: +el.dataset.card }; renderOverlay(); },
     'add-card': () => {
       if (state.projects.length >= P().projects) return upgrade('projects');
-      const p = { id: state.nextId++, title: '', hook: '', format: 'Vlog', status: 'idea', notes: '' };
+      const p = { id: state.nextId++, title: '', hook: '', format: 'Vlog', status: 'idea', notes: '', brand: '', due: '' };
       state.projects.push(p); modalOpen = { kind: 'card', id: p.id, isNew: true }; renderOverlay();
     },
     'del-card': () => { state.projects = state.projects.filter(p => p.id !== modalOpen.id); modalOpen = null; render(); toast('Card deleted.'); },
     'pick-thumbs': () => $('#thumb-file').click(),
-    'sample-thumbs': () => { addThumb('shocked-face-yellow.jpg', drawSample('a'), 'a'); addThumb('desk-navy-red-text.jpg', drawSample('b'), 'b'); addThumb('busy-desk-collage.jpg', drawSample('c'), 'c'); },
+    'sample-thumbs': () => { addThumb('5am-reset-face.jpg', drawSample('a'), 'a'); addThumb('beige-aesthetic-script.jpg', drawSample('b'), 'b'); addThumb('fall-haul-flatlay.jpg', drawSample('c'), 'c'); },
     'rm-thumb': el => { state.thumbs.items = state.thumbs.items.filter(t => t.id !== +el.dataset.id); render(); },
     tview: el => { state.thumbs.view = el.dataset.v; render(); },
     score,
@@ -875,7 +915,7 @@ collab with sam about burnout, she said yes in DMs`;
   document.addEventListener('submit', e => {
     if (e.target.id !== 'card-form') return; e.preventDefault();
     const p = state.projects.find(x => x.id === modalOpen.id);
-    p.title = $('#d-title').value.trim() || 'Untitled idea'; p.hook = $('#d-hook').value.trim(); p.format = $('#d-format').value; p.status = $('#d-status').value; p.notes = $('#d-notes').value;
+    p.title = $('#d-title').value.trim() || 'Untitled idea'; p.hook = $('#d-hook').value.trim(); p.format = $('#d-format').value; p.status = $('#d-status').value; p.notes = $('#d-notes').value; p.brand = $('#d-brand').value.trim(); p.due = $('#d-due').value;
     modalOpen = null; render(); toast('Saved.');
   });
   document.addEventListener('keydown', e => { if (e.key === 'Escape' && modalOpen) A.close(); });
