@@ -1,5 +1,4 @@
 <title>YT Dashboard Prototype</title>
-<meta name="claude:viewport-fit-sides" content="cover">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=JetBrains+Mono:wght@400;600&display=swap">
 <style>
   /* Layout: app shell for lifestyle creators. Soft lavender-white ground, pill controls, one primary action per screen, a step tracker on every tool. Left rail on desktop, bottom tab bar on phones. */
@@ -728,7 +727,7 @@ morning routine 5am vs 9am which one actually works`;
     if (m.sd < 0.12) notes.push('Colors are close together, so it may blend into the feed.');
     if (m.cbRatio < 0.83) notes.push('Red and green carry a lot of the image, which is lost for some colorblind viewers.');
     if (!notes.length) notes.push('Clean layout with good contrast. It should read well at small sizes.');
-    s.why = notes.join(' ') + ' (Demo score. The real app asks Claude.)';
+    s.why = notes.join(' ') + ' (Demo score. The real app asks the AI.)';
     s.total = total(s); return s;
   }
   const total = s => Math.round((s.clarity + s.emotion + s.contrast + s.text + s.curiosity) * 2);
@@ -925,8 +924,7 @@ morning routine 5am vs 9am which one actually works`;
     if (data && data.state) { state = data.state; }
     render();
   }
-  window.claude?.hot?.snapshot?.(() => ({ state }));
-  window.claude?.hot?.ready ? window.claude.hot.ready(start) : start(window.claude?.hot?.data ?? {});
+  start({});
   window.__demo = { analyze, drawSample, A, get state() { return state; } };
 })();
 </script>
